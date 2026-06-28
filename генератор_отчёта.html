@@ -1,0 +1,453 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<title>Генератор отчёта — Команда Дима</title>
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: Arial, sans-serif; background: #f0f2f5; min-height: 100vh; display: flex; align-items: center; justify-content: center; }
+.wrap { background: #fff; border-radius: 16px; padding: 48px 56px; box-shadow: 0 4px 32px rgba(0,0,0,.12); max-width: 560px; width: 100%; text-align: center; }
+.logo { font-size: 48px; margin-bottom: 16px; }
+h1 { font-size: 22px; color: #1a3660; margin-bottom: 8px; }
+.sub { color: #888; font-size: 14px; margin-bottom: 36px; }
+.drop-area {
+  border: 2px dashed #b0c4de; border-radius: 12px; padding: 40px 24px;
+  cursor: pointer; transition: all .2s; background: #f8faff; margin-bottom: 24px;
+  position: relative;
+}
+.drop-area:hover, .drop-area.dragover { border-color: #1a3660; background: #eef3fb; }
+.drop-area input[type=file] { position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%; }
+.drop-icon { font-size: 36px; margin-bottom: 12px; }
+.drop-text { font-size: 15px; color: #555; }
+.drop-hint { font-size: 12px; color: #aaa; margin-top: 6px; }
+.file-name { font-size: 13px; color: #1a7f3c; font-weight: 700; margin-top: 10px; }
+.btn {
+  display: inline-block; padding: 14px 36px; background: #1a3660; color: #fff;
+  border-radius: 8px; font-size: 16px; font-weight: 700; cursor: pointer;
+  border: none; width: 100%; transition: background .2s; margin-top: 4px;
+}
+.btn:hover { background: #25508a; }
+.btn:disabled { background: #aaa; cursor: not-allowed; }
+.status { margin-top: 20px; font-size: 14px; color: #555; min-height: 24px; }
+.ok { color: #1a7f3c; font-weight: 700; }
+.err { color: #b30000; font-weight: 700; }
+.steps { text-align: left; background: #f8faff; border-radius: 10px; padding: 20px 24px; margin-top: 32px; }
+.steps h3 { font-size: 13px; color: #1a3660; margin-bottom: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: .5px; }
+.step { display: flex; gap: 12px; margin-bottom: 10px; font-size: 13px; color: #555; align-items: flex-start; }
+.step-num { background: #1a3660; color: #fff; border-radius: 50%; width: 22px; height: 22px; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; flex-shrink: 0; margin-top: 1px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="logo">📊</div>
+  <h1>Отчёт команды Дима</h1>
+  <p class="sub">Загрузите Excel — получите готовый HTML отчёт</p>
+
+  <div class="drop-area" id="dropArea">
+    <input type="file" id="fileInput" accept=".xlsx">
+    <div class="drop-icon">📂</div>
+    <div class="drop-text">Нажмите или перетащите файл сюда</div>
+    <div class="drop-hint">Файл .xlsx — Виконання Дима</div>
+    <div class="file-name" id="fileName"></div>
+  </div>
+
+  <button class="btn" id="genBtn" disabled onclick="generate()">Сгенерировать отчёт</button>
+  <div class="status" id="status"></div>
+
+  <div class="steps">
+    <h3>Как пользоваться</h3>
+    <div class="step"><div class="step-num">1</div><div>Нажмите на область выше и выберите Excel файл</div></div>
+    <div class="step"><div class="step-num">2</div><div>Нажмите «Сгенерировать отчёт»</div></div>
+    <div class="step"><div class="step-num">3</div><div>HTML файл скачается автоматически — откройте его в браузере</div></div>
+  </div>
+</div>
+
+<script>
+let selectedFile = null;
+
+const dropArea = document.getElementById('dropArea');
+const fileInput = document.getElementById('fileInput');
+const fileName  = document.getElementById('fileName');
+const genBtn    = document.getElementById('genBtn');
+const status    = document.getElementById('status');
+
+fileInput.addEventListener('change', e => {
+  if (e.target.files[0]) selectFile(e.target.files[0]);
+});
+dropArea.addEventListener('dragover', e => { e.preventDefault(); dropArea.classList.add('dragover'); });
+dropArea.addEventListener('dragleave', () => dropArea.classList.remove('dragover'));
+dropArea.addEventListener('drop', e => {
+  e.preventDefault(); dropArea.classList.remove('dragover');
+  if (e.dataTransfer.files[0]) selectFile(e.dataTransfer.files[0]);
+});
+
+function selectFile(f) {
+  selectedFile = f;
+  fileName.textContent = '✓ ' + f.name;
+  genBtn.disabled = false;
+  status.textContent = '';
+}
+
+// ── helpers ──────────────────────────────────────────────
+function safeNum(v) {
+  if (v === null || v === undefined || v === '') return 0;
+  const n = parseFloat(v);
+  return isNaN(n) ? 0 : n;
+}
+function safePct(fact, plan) { return plan !== 0 ? fact / plan : 0; }
+
+function fmt(n) {
+  if (n === null || n === undefined) return '—';
+  const v = parseFloat(n);
+  if (isNaN(v)) return String(n);
+  if (v === Math.floor(v)) return Math.floor(v).toLocaleString('ru-RU');
+  return v.toLocaleString('ru-RU', {minimumFractionDigits:2, maximumFractionDigits:2});
+}
+
+function pctCls(p) { return p >= 1 ? 'g' : p >= 0.8 ? 'y' : 'r'; }
+function pctColor(p) { return p >= 1 ? '#1a7f3c' : p >= 0.8 ? '#966a00' : '#b30000'; }
+
+function badge(p) { return `<span class="pct ${pctCls(p)}">${(p*100).toFixed(1)}%</span>`; }
+
+function card(label, p, fact, plan, unit) {
+  return `<div class="card">
+    <div class="card-label">${label}</div>
+    <div class="card-value" style="color:${pctColor(p)}">${(p*100).toFixed(1)}%</div>
+    <div class="card-sub">${fmt(plan)} ${unit} / ${fmt(fact)}</div>
+  </div>`;
+}
+
+// ── парсинг данных из листа ──────────────────────────────
+function parseSheet(ws) {
+  // helper: получить значение ячейки по row (0-based), col (0-based)
+  function cell(row, col) {
+    const addr = XLSX.utils.encode_cell({r: row, c: col});
+    const c = ws[addr];
+    return c ? c.v : null;
+  }
+
+  const METRICS = ['Бан+Снек','Бан','Снек','СКЮ','АКБ','Маспекс','Доп Бренд Детокс'];
+  const UNITS   = ['шт','шт','шт','к-во','шт','грн','грн'];
+
+  // строки 2-7 (индекс 1-based в Excel = 0-based: 1..6) — сотрудники
+  const employees = [];
+  for (let i = 2; i <= 7; i++) {
+    const name = cell(i, 0);
+    if (!name || name === '' || name === null) continue;
+    const nm = String(name).trim();
+    if (!nm || nm === 'nan') continue;
+
+    const bp = safeNum(cell(i,1)),  bf = safeNum(cell(i,2));
+    const sp = safeNum(cell(i,4)),  sf = safeNum(cell(i,5));
+    const tp = safeNum(cell(i,7)),  tf = safeNum(cell(i,8));
+    const mp = safeNum(cell(i,10)), mf = safeNum(cell(i,11));
+    const ap = safeNum(cell(i,13)), af = safeNum(cell(i,14));
+    const kp = safeNum(cell(i,16)), kf = safeNum(cell(i,17));
+    const dp = safeNum(cell(i,20)), df = safeNum(cell(i,21));
+
+    employees.push({
+      name: nm,
+      ban_plan:bp, ban_fact:bf, ban_pct:safePct(bf,bp),
+      snek_plan:sp, snek_fact:sf, snek_pct:safePct(sf,sp),
+      tot_plan:tp, tot_fact:tf, tot_pct:safePct(tf,tp),
+      mas_plan:mp, mas_fact:mf, mas_pct:safePct(mf,mp),
+      akb_plan:ap, akb_fact:af, akb_pct:safePct(af,ap),
+      sku_plan:kp, sku_fact:kf, sku_pct:safePct(kf,kp),
+      det_plan:dp, det_fact:df, det_pct:safePct(df,dp),
+    });
+  }
+
+  // строка 1 (index 1) — итоги команды
+  const T = {
+    tot_plan:safeNum(cell(1,7)),  tot_fact:safeNum(cell(1,8)),
+    ban_plan:safeNum(cell(1,1)),  ban_fact:safeNum(cell(1,2)),
+    snek_plan:safeNum(cell(1,4)), snek_fact:safeNum(cell(1,5)),
+    mas_plan:safeNum(cell(1,10)), mas_fact:safeNum(cell(1,11)),
+    akb_plan:safeNum(cell(1,13)), akb_fact:safeNum(cell(1,14)),
+    sku_plan:safeNum(cell(1,16)), sku_fact:safeNum(cell(1,17)),
+    det_plan:safeNum(cell(1,20)), det_fact:safeNum(cell(1,21)),
+  };
+  Object.assign(T, {
+    tot_pct:safePct(T.tot_fact,T.tot_plan), ban_pct:safePct(T.ban_fact,T.ban_plan),
+    snek_pct:safePct(T.snek_fact,T.snek_plan), mas_pct:safePct(T.mas_fact,T.mas_plan),
+    akb_pct:safePct(T.akb_fact,T.akb_plan), sku_pct:safePct(T.sku_fact,T.sku_plan),
+    det_pct:safePct(T.det_fact,T.det_plan),
+  });
+
+  function readBlock(startRow, colOffset) {
+    // colOffset: 0 = левая (cols 2,3,6), 1 = правая (cols 12,13,16)
+    const pc = colOffset === 0 ? 2 : 12;
+    const fc = colOffset === 0 ? 3 : 13;
+    const dc = colOffset === 0 ? 6 : 16;
+    const rows = [];
+    for (let j = 0; j < 7; j++) {
+      const r = startRow + j;
+      const plan = safeNum(cell(r, pc));
+      const fact = safeNum(cell(r, fc));
+      const prod = safeNum(cell(r, dc));
+      rows.push({ metric:METRICS[j], unit:UNITS[j], plan, fact, pct:safePct(fact,plan), ost:plan-fact, prod });
+    }
+    return rows;
+  }
+
+  const detailBlocks = [
+    readBlock(18, 0), // Троіцкая
+    readBlock(27, 0), // Столига
+    readBlock(36, 0), // Артемов В
+    readBlock(18, 1), // Одіноков
+    readBlock(27, 1), // Зимовець
+    readBlock(36, 1), // Євген
+  ];
+
+  return { employees, T, detailBlocks };
+}
+
+// ── генерация HTML отчёта ────────────────────────────────
+function buildHTML(employees, T, detailBlocks) {
+  const LEGEND = `<div class="legend">
+    <span class="pct g">≥ 100%</span><span class="pct y">80 – 99%</span><span class="pct r">&lt; 80%</span>
+  </div>`;
+
+  function empCards(e) {
+    return `<div class="cards">
+      ${card("Бан+Снек (итого)", e.tot_pct, e.tot_fact, e.tot_plan, "шт")}
+      ${card("БАН", e.ban_pct, e.ban_fact, e.ban_plan, "шт")}
+      ${card("СНЕК", e.snek_pct, e.snek_fact, e.snek_plan, "шт")}
+      ${card("Maspex", e.mas_pct, e.mas_fact, e.mas_plan, "шт")}
+      ${card("АКБ", e.akb_pct, e.akb_fact, e.akb_plan, "шт")}
+      ${card("СКЮ", e.sku_pct, e.sku_fact, e.sku_plan, "")}
+      ${card("Детокс", e.det_pct, e.det_fact, e.det_plan, "грн")}
+    </div>`;
+  }
+
+  function detailTable(idx) {
+    const rows = detailBlocks[idx].map(({metric,unit,plan,fact,pct,ost,prod}) => {
+      const ostHtml = ost < 0
+        ? `<td class="pos">+${fmt(Math.abs(ost))}</td>`
+        : `<td class="neg">-${fmt(ost)}</td>`;
+      return `<tr>
+        <td class="metric">${metric}</td><td class="unit">${unit}</td>
+        <td>${fmt(plan)}</td><td>${fmt(fact)}</td>
+        <td style="text-align:center">${badge(pct)}</td>
+        ${ostHtml}<td>${fmt(prod)}</td>
+      </tr>`;
+    }).join('');
+    return `<h2>Детальное выполнение</h2>
+    <div class="tbl-wrap"><table class="dtable">
+      <thead><tr>
+        <th class="l">Показатель</th><th>Ед.</th><th>План</th><th>Факт</th>
+        <th>Выполнение %</th><th>Остаток</th><th>Продажа/день</th>
+      </tr></thead>
+      <tbody>${rows}</tbody>
+    </table></div>
+    <p class="note">* Остаток "+" = перевыполнение &nbsp; "-" = недовыполнение</p>`;
+  }
+
+  function empRow(e, idx) {
+    return `<tr>
+      <td class="l"><a href="#" onclick="showTab('e${idx}');return false;" style="color:#1a3660;text-decoration:none">${e.name}</a></td>
+      <td>${fmt(e.tot_plan)}</td><td>${fmt(e.tot_fact)}</td><td>${badge(e.tot_pct)}</td>
+      <td>${fmt(e.ban_plan)}</td><td>${fmt(e.ban_fact)}</td><td>${badge(e.ban_pct)}</td>
+      <td>${fmt(e.snek_plan)}</td><td>${fmt(e.snek_fact)}</td><td>${badge(e.snek_pct)}</td>
+      <td>${fmt(e.mas_plan)}</td><td>${fmt(e.mas_fact)}</td><td>${badge(e.mas_pct)}</td>
+      <td>${fmt(e.akb_plan)}</td><td>${fmt(e.akb_fact)}</td><td>${badge(e.akb_pct)}</td>
+      <td>${fmt(e.sku_plan)}</td><td>${fmt(e.sku_fact)}</td><td>${badge(e.sku_pct)}</td>
+      <td>${fmt(e.det_plan)}</td><td>${fmt(e.det_fact)}</td><td>${badge(e.det_pct)}</td>
+    </tr>`;
+  }
+
+  const teamCards = `<div class="cards">
+    ${card("Бан + Снек (итого)", T.tot_pct, T.tot_fact, T.tot_plan, "шт")}
+    ${card("БАН", T.ban_pct, T.ban_fact, T.ban_plan, "шт")}
+    ${card("СНЕК", T.snek_pct, T.snek_fact, T.snek_plan, "шт")}
+    ${card("Maspex", T.mas_pct, T.mas_fact, T.mas_plan, "шт")}
+    ${card("АКБ", T.akb_pct, T.akb_fact, T.akb_plan, "шт")}
+    ${card("СКЮ", T.sku_pct, T.sku_fact, T.sku_plan, "")}
+    ${card("Детокс (Доп Бренд)", T.det_pct, T.det_fact, T.det_plan, "грн")}
+  </div>`;
+
+  const empRows = employees.map((e,i) => empRow(e, i+1)).join('');
+  const totalRow = `<tr class="total">
+    <td class="l">ИТОГО команда</td>
+    <td>${fmt(T.tot_plan)}</td><td>${fmt(T.tot_fact)}</td><td>${badge(T.tot_pct)}</td>
+    <td>${fmt(T.ban_plan)}</td><td>${fmt(T.ban_fact)}</td><td>${badge(T.ban_pct)}</td>
+    <td>${fmt(T.snek_plan)}</td><td>${fmt(T.snek_fact)}</td><td>${badge(T.snek_pct)}</td>
+    <td>${fmt(T.mas_plan)}</td><td>${fmt(T.mas_fact)}</td><td>${badge(T.mas_pct)}</td>
+    <td>${fmt(T.akb_plan)}</td><td>${fmt(T.akb_fact)}</td><td>${badge(T.akb_pct)}</td>
+    <td>${fmt(T.sku_plan)}</td><td>${fmt(T.sku_fact)}</td><td>${badge(T.sku_pct)}</td>
+    <td>${fmt(T.det_plan)}</td><td>${fmt(T.det_fact)}</td><td>${badge(T.det_pct)}</td>
+  </tr>`;
+
+  const summaryTable = `<div class="tbl-wrap">
+  <table style="table-layout:fixed;width:100%">
+    <colgroup>
+      <col style="width:11%">
+      <col style="width:3.8%"><col style="width:3.8%"><col style="width:4.2%">
+      <col style="width:3.8%"><col style="width:3.8%"><col style="width:4.2%">
+      <col style="width:3.8%"><col style="width:3.8%"><col style="width:4.2%">
+      <col style="width:3.8%"><col style="width:3.8%"><col style="width:4.2%">
+      <col style="width:3.4%"><col style="width:3.4%"><col style="width:4.2%">
+      <col style="width:3.8%"><col style="width:3.8%"><col style="width:4.2%">
+      <col style="width:4.2%"><col style="width:4.2%"><col style="width:4.2%">
+    </colgroup>
+    <thead>
+      <tr>
+        <th class="l" rowspan="2">Сотрудник</th>
+        <th colspan="3">Бан+Снек шт</th>
+        <th colspan="3" class="g1">БАН шт</th>
+        <th colspan="3" class="g2">СНЕК шт</th>
+        <th colspan="3" class="g3">Maspex шт</th>
+        <th colspan="3" class="g4">АКБ шт</th>
+        <th colspan="3" class="g5">СКЮ</th>
+        <th colspan="3" class="g6">Детокс грн</th>
+      </tr>
+      <tr>
+        <th>План</th><th>Факт</th><th>%</th>
+        <th class="g1">План</th><th class="g1">Факт</th><th class="g1">%</th>
+        <th class="g2">План</th><th class="g2">Факт</th><th class="g2">%</th>
+        <th class="g3">План</th><th class="g3">Факт</th><th class="g3">%</th>
+        <th class="g4">План</th><th class="g4">Факт</th><th class="g4">%</th>
+        <th class="g5">План</th><th class="g5">Факт</th><th class="g5">%</th>
+        <th class="g6">План</th><th class="g6">Факт</th><th class="g6">%</th>
+      </tr>
+    </thead>
+    <tbody>${empRows}${totalRow}</tbody>
+  </table>
+  </div>
+  <p class="note">* Нажмите на имя сотрудника чтобы перейти в его детальный отчёт</p>`;
+
+  const tabBtns = `<button class="tab-btn active" onclick="showTab('team')">📊 Вся команда</button>
+    ${employees.map((e,i) => `<button class="tab-btn" onclick="showTab('e${i+1}')">${e.name}</button>`).join('\n    ')}`;
+
+  const empPages = employees.map((e,i) => `
+<div id="e${i+1}" class="tab-page">
+  <h1>${e.name}</h1>
+  <p class="subtitle">Выполнение плана — Июнь 2026</p>
+  ${LEGEND}
+  ${empCards(e)}
+  ${detailTable(i)}
+</div>`).join('');
+
+  return `<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<title>Выполнение плана — Июнь 2026 — Команда Дима</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: Arial, sans-serif; background: #f0f2f5; color: #222; }
+.tabs-wrapper { background: #1a3660; position: sticky; top: 0; z-index: 100; box-shadow: 0 2px 8px rgba(0,0,0,.3); }
+.tabs { display: flex; overflow-x: auto; scrollbar-width: none; }
+.tabs::-webkit-scrollbar { display: none; }
+.tab-btn { flex-shrink:0; padding:14px 22px; color:rgba(255,255,255,.65); cursor:pointer; font-size:13px;
+  font-weight:500; border:none; background:none; border-bottom:3px solid transparent; transition:all .2s; white-space:nowrap; }
+.tab-btn:hover { color:#fff; background:rgba(255,255,255,.08); }
+.tab-btn.active { color:#fff; border-bottom-color:#4fc3f7; font-weight:700; }
+.tab-page { display:none; max-width:100%; margin:0 auto; padding:20px 20px 60px; }
+.tab-page.active { display:block; }
+h1 { font-size:21px; color:#1a3660; margin-bottom:4px; }
+.subtitle { color:#888; font-size:13px; margin-bottom:22px; }
+h2 { font-size:15px; color:#1a3660; margin:24px 0 10px; border-left:4px solid #1a3660; padding-left:10px; }
+.cards { display:grid; grid-template-columns:repeat(auto-fit,minmax(160px,1fr)); gap:10px; margin-bottom:24px; }
+.card { background:#fff; border-radius:10px; padding:12px 14px; box-shadow:0 1px 4px rgba(0,0,0,.07); }
+.card-label { font-size:10px; color:#999; text-transform:uppercase; letter-spacing:.5px; margin-bottom:4px; }
+.card-value { font-size:24px; font-weight:800; }
+.card-sub { font-size:11px; color:#888; margin-top:4px; }
+.tbl-wrap { overflow-x:visible; margin-bottom:8px; }
+table { width:100%; border-collapse:collapse; font-size:13px; background:#fff;
+  border-radius:8px; overflow:hidden; box-shadow:0 1px 4px rgba(0,0,0,.07); table-layout:fixed; }
+th { background:#1a3660; color:#fff; padding:8px 4px; text-align:center; font-size:12px; font-weight:600; }
+th.l { text-align:left; }
+th.g1{background:#1e5c3a} th.g2{background:#5c3a1e} th.g3{background:#3a1e5c}
+th.g4{background:#1e3a5c} th.g5{background:#5c4a1e} th.g6{background:#3a5c1e}
+td { padding:9px 5px; text-align:right; border-bottom:1px solid #eee; font-size:13px; }
+td.l { text-align:left; font-weight:600; padding-left:8px; }
+tr:last-child td { border-bottom:none; }
+tr:hover td { background:#f5f8ff; }
+tr.total td { background:#eaf0fb; font-weight:700; }
+tr.total:hover td { background:#dde8f5; }
+.pct { display:inline-block; border-radius:4px; padding:3px 5px; font-weight:800; font-size:12px; min-width:52px; text-align:center; }
+.g{background:#d4edda;color:#1a7f3c} .y{background:#fff3cd;color:#966a00} .r{background:#f8d7da;color:#b30000}
+.legend { font-size:12px; color:#777; margin:10px 0 20px; display:flex; gap:14px; flex-wrap:wrap; align-items:center; }
+.legend span { padding:2px 10px; border-radius:4px; font-weight:700; font-size:12px; }
+.dtable td.metric{text-align:left;font-weight:600} .dtable td.unit{text-align:center;color:#888}
+.pos{color:#1a7f3c;font-weight:700} .neg{color:#b30000;font-weight:700}
+.note{font-size:11px;color:#aaa;margin-top:6px}
+</style>
+</head>
+<body>
+<div class="tabs-wrapper">
+  <div class="tabs">${tabBtns}</div>
+</div>
+<div id="team" class="tab-page active">
+  <h1>Выполнение плана — Июнь 2026</h1>
+  <p class="subtitle">Команда супервайзера Дима — сводный отчёт</p>
+  ${LEGEND}
+  ${teamCards}
+  <h2>Сводная таблица по сотрудникам</h2>
+  ${summaryTable}
+</div>
+${empPages}
+<script>
+function showTab(id) {
+  document.querySelectorAll('.tab-page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  const ids = ['team','e1','e2','e3','e4','e5','e6'];
+  const idx = ids.indexOf(id);
+  if(idx>=0) document.querySelectorAll('.tab-btn')[idx].classList.add('active');
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+<\/script>
+</body>
+</html>`;
+}
+
+// ── основная функция ─────────────────────────────────────
+function generate() {
+  if (!selectedFile) return;
+  status.innerHTML = 'Читаем файл...';
+  genBtn.disabled = true;
+
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    try {
+      const data = new Uint8Array(e.target.result);
+      const wb = XLSX.read(data, { type: 'array' });
+      const ws = wb.Sheets[wb.SheetNames[0]];
+
+      const { employees, T, detailBlocks } = parseSheet(ws);
+
+      if (employees.length === 0) {
+        status.innerHTML = '<span class="err">Не найдены сотрудники. Проверьте файл.</span>';
+        genBtn.disabled = false;
+        return;
+      }
+
+      const html = buildHTML(employees, T, detailBlocks);
+
+      const blob = new Blob([html], { type: 'text/html;charset=utf-8' });
+      const url = URL.createObjectURL(blob);
+
+      // открываем отчёт в новой вкладке
+      window.open(url, '_blank');
+
+      // и скачиваем файл
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'отчёт_Дима.html';
+      a.click();
+
+      status.innerHTML = `<span class="ok">Готово! Отчёт открылся в новой вкладке и скачан.</span>`;
+    } catch(err) {
+      status.innerHTML = `<span class="err">Ошибка: ${err.message}</span>`;
+      console.error(err);
+    }
+    genBtn.disabled = false;
+  };
+  reader.readAsArrayBuffer(selectedFile);
+}
+</script>
+</body>
+</html>
