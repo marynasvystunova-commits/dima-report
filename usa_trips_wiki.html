@@ -1,0 +1,540 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>✈️ USA Trips Wiki</title>
+<style>
+:root {
+  --bg: #f7f5ff;
+  --sidebar-bg: #1e1b2e;
+  --sidebar-w: 260px;
+  --accent1: #7c5cbf;
+  --text: #2d2540;
+  --muted: #9890b0;
+  --card: #fff;
+  --radius: 14px;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: 'Segoe UI', Arial, sans-serif; background: var(--bg); color: var(--text); display: flex; min-height: 100vh; }
+
+/* SIDEBAR */
+.sidebar { width: var(--sidebar-w); background: var(--sidebar-bg); position: fixed; top: 0; left: 0; height: 100vh; display: flex; flex-direction: column; z-index: 100; overflow-y: auto; }
+.sidebar-logo { padding: 24px 20px 18px; border-bottom: 1px solid rgba(255,255,255,.07); }
+.sidebar-logo h2 { color: #fff; font-size: 16px; font-weight: 800; }
+.sidebar-logo p { color: rgba(255,255,255,.35); font-size: 11px; margin-top: 3px; }
+.nav-group { padding: 14px 20px 4px; font-size: 10px; font-weight: 700; color: rgba(255,255,255,.25); text-transform: uppercase; letter-spacing: 1px; }
+.nav-item { display: flex; align-items: center; gap: 10px; padding: 9px 20px; color: rgba(255,255,255,.5); cursor: pointer; font-size: 13px; font-weight: 500; border-left: 3px solid transparent; transition: all .15s; }
+.nav-item:hover { background: rgba(255,255,255,.05); color: rgba(255,255,255,.85); }
+.nav-item.active { color: #fff; border-left-color: #a78bfa; background: rgba(124,92,191,.18); }
+.nav-icon { font-size: 15px; }
+
+/* MAIN */
+.main { margin-left: var(--sidebar-w); flex: 1; }
+.page { display: none; padding: 36px 40px 80px; }
+.page.active { display: block; }
+
+/* HERO */
+.hero { border-radius: var(--radius); padding: 30px 34px; margin-bottom: 28px; position: relative; overflow: hidden; }
+.hero h1 { font-size: 26px; font-weight: 900; color: #fff; }
+.hero p { font-size: 13px; color: rgba(255,255,255,.7); margin-top: 5px; }
+.hero-bg { position: absolute; right: 28px; top: 50%; transform: translateY(-50%); font-size: 64px; opacity: .15; pointer-events: none; }
+.h-purple { background: linear-gradient(135deg,#7c5cbf,#5b3fa0); }
+.h-blue   { background: linear-gradient(135deg,#3d9be8,#1a6fbc); }
+.h-red    { background: linear-gradient(135deg,#e8605a,#c0392b); }
+.h-green  { background: linear-gradient(135deg,#3db88b,#27855f); }
+.h-orange { background: linear-gradient(135deg,#f0a500,#c47d00); }
+
+/* STEP BLOCKS */
+.step { background: var(--card); border-radius: var(--radius); margin-bottom: 10px; box-shadow: 0 1px 8px rgba(45,37,64,.07); overflow: hidden; }
+.step-head { display: flex; align-items: center; gap: 14px; padding: 15px 20px; cursor: pointer; user-select: none; transition: background .15s; }
+.step-head:hover { background: #faf9ff; }
+.step-num { width: 32px; height: 32px; border-radius: 10px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 13px; color: #fff; }
+.step-title { font-size: 14px; font-weight: 700; flex: 1; color: var(--text); }
+.step-ico { font-size: 17px; }
+.chev { color: #ccc; font-size: 11px; transition: transform .2s; }
+.chev.open { transform: rotate(180deg); }
+.step-body { padding: 2px 20px 18px 66px; display: none; }
+.step-body.open { display: block; }
+.step-body p { font-size: 14px; color: #4a4060; line-height: 1.7; margin-bottom: 8px; }
+.step-body ul { padding-left: 18px; margin: 4px 0 8px; }
+.step-body li { font-size: 14px; color: #4a4060; line-height: 1.7; margin-bottom: 3px; }
+
+/* CALLOUTS */
+.callout { display: flex; gap: 10px; border-radius: 10px; padding: 11px 14px; margin: 8px 0; font-size: 13px; line-height: 1.6; }
+.c-warn { background: #fff8e1; color: #7a5800; }
+.c-info { background: #ede9ff; color: #4a2fa0; }
+.c-ok   { background: #e6f9f2; color: #1a5c40; }
+.c-red  { background: #fdecea; color: #9c2318; font-weight: 700; }
+.c-diff { background: #fff3e0; color: #bf4800; font-weight: 700; }
+
+/* PILLS / PATHS */
+.pill { display: inline-flex; align-items: center; gap: 5px; padding: 5px 13px; border-radius: 20px; font-size: 12px; font-weight: 700; text-decoration: none; margin: 3px 3px 3px 0; background: #ede9ff; color: #5b3fa0; transition: background .15s; }
+.pill:hover { background: #d9d0ff; }
+.path-btn { display: block; padding: 8px 13px; border-radius: 10px; font-size: 11px; font-weight: 600; font-family: 'Consolas',monospace; cursor: pointer; border: none; background: #f3f0ff; color: #5c3a9e; margin: 7px 0; transition: background .15s; word-break: break-all; text-align: left; line-height: 1.5; width: 100%; }
+.path-btn:hover { background: #e5deff; }
+
+/* LINK CARDS GRID */
+.lcards { display: grid; grid-template-columns: 1fr 1fr; gap: 11px; margin-top: 6px; }
+.lcard { background: #faf9ff; border-radius: 12px; padding: 14px 16px; border: 1.5px solid #ede9ff; transition: all .15s; text-decoration: none; display: block; }
+.lcard:hover { border-color: #a78bfa; background: #f0ecff; transform: translateY(-2px); box-shadow: 0 4px 16px rgba(124,92,191,.1); }
+.lcard-ico { font-size: 22px; margin-bottom: 7px; }
+.lcard-title { font-size: 13px; font-weight: 700; color: var(--text); margin-bottom: 3px; }
+.lcard-desc { font-size: 11px; color: var(--muted); line-height: 1.5; }
+
+/* LETTER */
+.letter-box { background: #faf9ff; border-radius: 12px; padding: 18px 20px; margin: 10px 0; border-left: 4px solid #a78bfa; }
+.letter-box.en { border-left-color: #e8605a; background: #fff8f7; }
+.letter-text { font-size: 13px; line-height: 1.9; color: #3a3050; white-space: pre-wrap; }
+
+/* EMAIL */
+.email-box { background: #f7f5ff; border-radius: 12px; padding: 15px 18px; margin: 10px 0; }
+.e-label { font-size: 10px; font-weight: 800; color: var(--muted); text-transform: uppercase; letter-spacing: .5px; margin: 10px 0 3px; }
+.e-label:first-child { margin-top: 0; }
+.e-val { font-size: 13px; font-weight: 600; color: #5b3fa0; }
+
+/* DOC GRID */
+.dgrid { display: grid; grid-template-columns: 1fr 1fr; gap: 9px; margin: 10px 0; }
+.dcard { background: #faf9ff; border-radius: 10px; padding: 11px 14px; border: 1.5px solid #ede9ff; }
+.dcard-title { font-size: 13px; font-weight: 700; color: var(--text); margin-bottom: 2px; }
+.dcard-desc { font-size: 11px; color: var(--muted); line-height: 1.5; }
+.dcard-note { font-size: 11px; color: #e8605a; font-weight: 700; margin-top: 3px; }
+
+/* TAGS */
+.tag { display: inline-block; padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: 700; margin: 2px; background: #fff3cd; color: #966a00; }
+
+/* COLORS */
+.n1{background:#7c5cbf}.n2{background:#9b6dd6}.n3{background:#b08aed}
+.n4{background:#3d9be8}.n5{background:#52aef5}.n6{background:#7ec8fb}
+.n7{background:#3db88b}.n8{background:#52d4a6}.n9{background:#7ae0be}
+.n10{background:#e8605a}.n11{background:#f07a75}.n12{background:#f59c98}
+.n13{background:#f0a500}.n14{background:#f5bc35}.n15{background:#fad060}
+.n16{background:#7c5cbf}.n17{background:#3d9be8}.n18{background:#3db88b}
+.n19{background:#e8605a}.n20{background:#f0a500}
+
+/* MOBILE */
+.burger { display: none; position: fixed; top: 14px; left: 14px; z-index: 200; background: var(--sidebar-bg); border: none; border-radius: 10px; padding: 8px 12px; cursor: pointer; color: #fff; font-size: 18px; }
+@media(max-width:768px){
+  .burger { display: block; }
+  .sidebar { transform: translateX(-100%); transition: transform .3s; }
+  .sidebar.open { transform: translateX(0); }
+  .main { margin-left: 0; }
+  .page { padding: 24px 16px 60px; }
+  .lcards,.dgrid { grid-template-columns: 1fr; }
+}
+</style>
+</head>
+<body>
+
+<button class="burger" onclick="document.getElementById('sb').classList.toggle('open')">☰</button>
+
+<div class="sidebar" id="sb">
+  <div class="sidebar-logo">
+    <h2>✈️ USA Trips Wiki</h2>
+    <p>ISD — командировки в США</p>
+  </div>
+  <div class="nav-group">Материалы</div>
+  <div class="nav-item active" onclick="go('home')"><span class="nav-icon">🗂️</span> Полезные ссылки</div>
+  <div class="nav-group">Виза — ISD</div>
+  <div class="nav-item" onclick="go('visa')"><span class="nav-icon">📋</span> Процесс получения визы</div>
+  <div class="nav-group">Командировка</div>
+  <div class="nav-item" onclick="go('start')"><span class="nav-icon">🛫</span> Начало командировки</div>
+  <div class="nav-group">SCC Poland</div>
+  <div class="nav-item" onclick="go('scc')"><span class="nav-icon">🇵🇱</span> Процесс SCC Poland</div>
+  <div class="nav-item" onclick="go('letters')"><span class="nav-icon">✉️</span> Письма сотруднику</div>
+  <div class="nav-item" onclick="go('docs')"><span class="nav-icon">📄</span> Документы</div>
+  <div class="nav-item" onclick="go('receipts')"><span class="nav-icon">🧾</span> Квитанции в SCC</div>
+</div>
+
+<div class="main">
+
+<!-- ════════ ПОЛЕЗНЫЕ ССЫЛКИ ════════ -->
+<div id="home" class="page active">
+  <div class="hero h-purple"><h1>🗂️ Полезные материалы</h1><p>Все ссылки, папки и документы в одном месте</p><span class="hero-bg">📎</span></div>
+
+  <div class="step">
+    <div class="step-head" onclick="tog(this)">
+      <div class="step-num n1">📁</div><span class="step-ico"></span>
+      <span class="step-title">Папки на сервере</span>
+      <span class="chev open">▼</span>
+    </div>
+    <div class="step-body open">
+      <p>Документы сотрудников (по логинам):</p>
+      <button class="path-btn" onclick="cp(this,'\\\\isdfs\\Office\\HR_Data\\Internal\\Business_trips\\B1\\All_DOCS')">📁 \\isdfs\Office\HR_Data\Internal\Business_trips\B1\All_DOCS</button>
+      <p>Примеры документов (opinion, memo, port of entry):</p>
+      <button class="path-btn" onclick="cp(this,'\\\\isdfs\\Office\\HR_Data\\Internal\\Business_trips\\B1\\All_DOCS\\examples opinioin, memo, port of entry ltrs')">📁 \\isdfs\...\examples opinioin, memo, port of entry ltrs</button>
+      <div style="margin-top:10px">
+        <span class="tag">📄 3.1. Foreign Business Trip Policy.docx</span>
+        <span class="tag">📄 3.3. Business Trip. Tickets buying and hotels booking.docx</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="step">
+    <div class="step-head" onclick="tog(this)">
+      <div class="step-num n2">🌐</div><span class="step-ico"></span>
+      <span class="step-title">Сайты и сервисы</span>
+      <span class="chev open">▼</span>
+    </div>
+    <div class="step-body open">
+      <div class="lcards">
+        <a class="lcard" href="https://ceac.state.gov/genniv/" target="_blank"><div class="lcard-ico">📝</div><div class="lcard-title">Анкета DS-160</div><div class="lcard-desc">Официальная форма на визу США</div></a>
+        <a class="lcard" href="https://ceac.state.gov/CEACStatTracker/Status.aspx" target="_blank"><div class="lcard-ico">🔍</div><div class="lcard-title">Статус визы CEAC</div><div class="lcard-desc">Проверить статус заявления</div></a>
+        <a class="lcard" href="https://ais.usvisa-info.com/pl-pl/niv" target="_blank"><div class="lcard-ico">👤</div><div class="lcard-title">Личный кабинет (Польша)</div><div class="lcard-desc">User details — Self Asserted</div></a>
+        <a class="lcard" href="https://portal.ustraveldocs.com/applicanthome" target="_blank"><div class="lcard-ico">🏛️</div><div class="lcard-title">US Travel Docs (SCC)</div><div class="lcard-desc">Портал для SCC Poland</div></a>
+        <a class="lcard" href="https://www.smartsheet.com/" target="_blank"><div class="lcard-ico">📊</div><div class="lcard-title">Smartsheet B1 ISD</div><div class="lcard-desc">Таблица отслеживания статусов</div></a>
+        <a class="lcard" href="https://www.parcelgo.com/" target="_blank"><div class="lcard-ico">📦</div><div class="lcard-title">ParcelGO</div><div class="lcard-desc">Доставка паспорта в Варшаву</div></a>
+        <a class="lcard" href="https://travel.state.gov/content/travel/en/us-visas/visa-information-resources/ineligibilities-and-waivers/laws.html" target="_blank"><div class="lcard-ico">❌</div><div class="lcard-title">Отказы в визе (214b)</div><div class="lcard-desc">Ineligibilities and Waivers</div></a>
+        <a class="lcard" href="https://www.gsa.gov/travel/plan-book/per-diem-rates/per-diem-rates-results?action=perdiems_report&fiscal_year=2026&state=WA&city=Seattle&zip=" target="_blank"><div class="lcard-ico">💰</div><div class="lcard-title">Суточные GSA</div><div class="lcard-desc">Per Diem по городам мира</div></a>
+        <a class="lcard" href="https://travel.state.gov/content/travel/en/us-visas/visa-information-resources/photos.html" target="_blank"><div class="lcard-ico">📸</div><div class="lcard-title">Требования к фото</div><div class="lcard-desc">Формат фото для визы США</div></a>
+        <a class="lcard" href="https://youtu.be/eW799gzU0ww" target="_blank"><div class="lcard-ico">🎥</div><div class="lcard-title">Собеседование в Варшаве</div><div class="lcard-desc">Видео — как проходить</div></a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ════════ ПРОЦЕСС ВИЗЫ ISD ════════ -->
+<div id="visa" class="page">
+  <div class="hero h-blue"><h1>📋 Процесс получения визы</h1><p>ISD — пошаговый гайд, 18 шагов</p><span class="hero-bg">🛂</span></div>
+
+  <div class="step"><div class="step-head" onclick="tog(this)"><div class="step-num n4">1</div><span class="step-ico">📩</span><span class="step-title">Запрос от Лизы</span><span class="chev open">▼</span></div>
+  <div class="step-body open"><div class="callout c-warn">⚠️ Запрос получаем <strong>ТОЛЬКО от Лизы!</strong></div></div></div>
+
+  <div class="step"><div class="step-head" onclick="tog(this)"><div class="step-num n4">2</div><span class="step-ico">🏢</span><span class="step-title">Выясняем компанию и откуда подаётся</span><span class="chev">▼</span></div>
+  <div class="step-body"><div class="callout c-info">📌 <strong>EPE → Office data → Labour Contract Information</strong><br>Варианты: ISD / ISD Poland / SCC Ukraine</div></div></div>
+
+  <div class="step"><div class="step-head" onclick="tog(this)"><div class="step-num n5">3</div><span class="step-ico">✉️</span><span class="step-title">Пишем письмо сотруднику</span><span class="chev">▼</span></div>
+  <div class="step-body"><p>Отправляем 1-е письмо (скан паспорта + инструкция) и 2-е письмо (подсказки DS-160). Тексты — в разделе <strong>Письма сотруднику</strong>.</p></div></div>
+
+  <div class="step"><div class="step-head" onclick="tog(this)"><div class="step-num n5">4</div><span class="step-ico">📊</span><span class="step-title">Вносим в Smartsheet и обновляем</span><span class="chev">▼</span></div>
+  <div class="step-body"><a class="pill" href="https://www.smartsheet.com/" target="_blank">→ B1 ISD Program</a></div></div>
+
+  <div class="step"><div class="step-head" onclick="tog(this)"><div class="step-num n6">5</div><span class="step-ico">📝</span><span class="step-title">Заполняем DS-160 и собираем документы</span><span class="chev">▼</span></div>
+  <div class="step-body"><a class="pill" href="https://ceac.state.gov/genniv/" target="_blank">→ Анкета DS-160</a><div class="callout c-warn">❗ Не сабмитить без проверки — сабмитим вместе!</div></div></div>
+
+  <div class="step"><div class="step-head" onclick="tog(this)"><div class="step-num n6">6</div><span class="step-ico">📋</span><span class="step-title">Готовим Memo — отправляем Лизе</span><span class="chev">▼</span></div>
+  <div class="step-body"><p>Embassy Memo + скан паспорта → Лизе.</p><button class="path-btn" onclick="cp(this,'\\\\isdfs\\Office\\HR_Data\\Internal\\Business_trips\\B1\\All_DOCS\\examples opinioin, memo, port of entry ltrs')">📁 \\isdfs\...\examples opinioin, memo, port of entry ltrs</button></div></div>
+
+  <div class="step"><div class="step-head" onclick="tog(this)"><div class="step-num n1">7</div><span class="step-ico">✍️</span><span class="step-title">Готовим Opinion — подписывает В.П.</span><span class="chev">▼</span></div>
+  <div class="step-body"><p>Готовим opinion → шлём на <strong>okma</strong> → подписывает В.П.</p></div></div>
+
+  <div class="step"><div class="step-head" onclick="tog(this)"><div class="step-num n1">8</div><span class="step-ico">✅</span><span class="step-title">Проверяем анкету и личный кабинет</span><span class="chev">▼</span></div>
+  <div class="step-body"><a class="pill" href="https://ais.usvisa-info.com/pl-pl/niv" target="_blank">→ Личный кабинет</a><div class="callout c-info">📌 Вверху на синем фоне: <strong>"visa receiving in Poland"</strong></div><p>Объясняем как записаться на собеседование.</p></div></div>
+
+  <div class="step"><div class="step-head" onclick="tog(this)"><div class="step-num n2">9</div><span class="step-ico">💳</span><span class="step-title">Оплата и выбор даты</span><span class="chev">▼</span></div>
+  <div class="step-body"><div class="callout c-red">🚨 Оплата ТОЛЬКО с карты <strong>Польского банка</strong> на территории Польши!<br>С украинской карты НЕ пройдёт!!!</div><p>На следующий день после оплаты — выбирает дату собеседования.</p></div></div>
+
+  <div class="step"><div class="step-head" onclick="tog(this)"><div class="step-num n2">10</div><span class="step-ico">🗂️</span><span class="step-title">Регистрируем БТ в EPE</span><span class="chev">▼</span></div>
+  <div class="step-body"><ul><li>Для украинцев: <strong>мин. 5 рабочих дней</strong> в Польшу</li><li>+ <strong>1-2 дня</strong> на дорогу туда и обратно</li></ul></div></div>
+
+  <div class="step"><div class="step-head" onclick="tog(this)"><div class="step-num n3">11</div><span class="step-ico">📨</span><span class="step-title">Invitation Letter от Лизы</span><span class="chev">▼</span></div>
+  <div class="step-body"><p>Лиза присылает invitation letter для посольства.</p></div></div>
+
+  <div class="step"><div class="step-head" onclick="tog(this)"><div class="step-num n3">12</div><span class="step-ico">🛡️</span><span class="step-title">Готовим страховку</span><span class="chev">▼</span></div>
+  <div class="step-body"><p>На даты поездки в Польшу — диапазон <strong>5 рабочих дней</strong>.</p></div></div>
+
+  <div class="step"><div class="step-head" onclick="tog(this)"><div class="step-num n7">13</div><span class="step-ico">🔍</span><span class="step-title">Документы на проверку и распечатать</span><span class="chev">▼</span></div>
+  <div class="step-body"><p>Скидываем на сверку: invitation letter, opinion, insurance. После — распечатываем.</p></div></div>
+
+  <div class="step"><div class="step-head" onclick="tog(this)"><div class="step-num n7">14</div><span class="step-ico">🎫</span><span class="step-title">Правила перед покупкой билетов</span><span class="chev">▼</span></div>
+  <div class="step-body"><span class="tag">📄 3.3. Business Trip. Tickets buying and hotels booking.docx</span></div></div>
+
+  <div class="step"><div class="step-head" onclick="tog(this)"><div class="step-num n8">15</div><span class="step-ico">🧾</span><span class="step-title">Собираем документы для бухгалтерии</span><span class="chev">▼</span></div>
+  <div class="step-body"><ul><li>Квитанции об оплате визового сбора</li><li>Билеты в посольство</li><li>Отель</li><li>Транзакции с карты в гривне</li><li>Чеки о переводе документов</li></ul><div class="callout c-ok">📧 Отправляем в бухгалтерию: <strong>okma@isd.dp.ua</strong></div></div></div>
+
+  <div class="step"><div class="step-head" onclick="tog(this)"><div class="step-num n8">16</div><span class="step-ico">📅</span><span class="step-title">Сообщаем Лизе дату собеседования</span><span class="chev">▼</span></div>
+  <div class="step-body"><p>Как только выбрали дату — сразу сообщаем Лизе.</p></div></div>
+
+  <div class="step"><div class="step-head" onclick="tog(this)"><div class="step-num n9">17</div><span class="step-ico">📞</span><span class="step-title">Инструктаж перед собеседованием</span><span class="chev">▼</span></div>
+  <div class="step-body"><a class="pill" href="https://youtu.be/eW799gzU0ww" target="_blank">→ Видео: прохождение собеседования в посольстве Варшавы</a></div></div>
+
+  <div class="step"><div class="step-head" onclick="tog(this)"><div class="step-num n9">18</div><span class="step-ico">🏛️</span><span class="step-title">Собеседование и результат</span><span class="chev">▼</span></div>
+  <div class="step-body"><a class="pill" href="https://ceac.state.gov/CEACStatTracker/Status.aspx" target="_blank">→ Проверка статуса визы</a><div class="callout c-ok">✅ Дали визу — скан → Лизе.</div><div class="callout c-warn">❌ Отказали — тоже сообщаем Лизе.</div></div></div>
+</div>
+
+<!-- ════════ НАЧАЛО КОМАНДИРОВКИ ════════ -->
+<div id="start" class="page">
+  <div class="hero h-red"><h1>🛫 Начало командировки</h1><p>После визы: билеты, страховка, инструктаж</p><span class="hero-bg">🌍</span></div>
+
+  <div class="step"><div class="step-head" onclick="tog(this)"><div class="step-num n10">1</div><span class="step-ico">🎫</span><span class="step-title">Билеты в Штаты — кто покупает</span><span class="chev open">▼</span></div>
+  <div class="step-body open"><p>Лиза пишет кто покупает: <strong>мы</strong> или <strong>SCC</strong>.</p></div></div>
+
+  <div class="step"><div class="step-head" onclick="tog(this)"><div class="step-num n10">2</div><span class="step-ico">📋</span><span class="step-title">После покупки — просим письмо и заполняем файл Лизы</span><span class="chev">▼</span></div>
+  <div class="step-body"><ul><li>Просим Лизу подготовить <strong>письмо для пересечения границы</strong></li><li>Заполняем файл Лизы</li></ul><button class="path-btn" onclick="cp(this,'\\\\isdfs\\Office\\HR_Data\\Internal\\Business_trips\\B1\\All_DOCS\\examples opinioin, memo, port of entry ltrs')">📁 \\isdfs\...\examples opinioin, memo, port of entry ltrs</button></div></div>
+
+  <div class="step"><div class="step-head" onclick="tog(this)"><div class="step-num n11">3</div><span class="step-ico">🛡️</span><span class="step-title">Заполняем бланк страховки</span><span class="chev">▼</span></div>
+  <div class="step-body"><p>Заполняем страховку на даты командировки в США.</p></div></div>
+
+  <div class="step"><div class="step-head" onclick="tog(this)"><div class="step-num n11">4</div><span class="step-ico">📨</span><span class="step-title">Ждём письмо от Лизы — отправляем человеку</span><span class="chev">▼</span></div>
+  <div class="step-body"><div class="callout c-warn">🖨️ Распечатать в <strong>цветном</strong> варианте!</div><button class="path-btn" onclick="cp(this,'\\\\isdfs\\Office\\HR_Data\\Internal\\Business_trips\\B1\\All_DOCS\\examples opinioin, memo, port of entry ltrs Mariana Zviahina')">📁 \\isdfs\...\examples opinioin, memo, port of entry ltrs Mariana Zviahina</button></div></div>
+
+  <div class="step"><div class="step-head" onclick="tog(this)"><div class="step-num n12">5</div><span class="step-ico">📄</span><span class="step-title">Политика командировок — на ознакомление</span><span class="chev">▼</span></div>
+  <div class="step-body"><span class="tag">📄 3.1. Foreign Business Trip Policy.docx</span><div class="callout c-ok" style="margin-top:8px">✅ Человек ставит <strong>"+"</strong> что ознакомлен</div></div></div>
+
+  <div class="step"><div class="step-head" onclick="tog(this)"><div class="step-num n12">6</div><span class="step-ico">💻</span><span class="step-title">Уточняем насчёт ноутбука</span><span class="chev">▼</span></div>
+  <div class="step-body"><ul><li>Может ли взять ноутбук <strong>с собой в Польшу</strong></li><li>Обратно из Штатов — ноутбук тоже нужно брать</li></ul></div></div>
+
+  <div class="step"><div class="step-head" onclick="tog(this)"><div class="step-num n13">7</div><span class="step-ico">🏨</span><span class="step-title">Созваниваемся — отель и билеты до Польши</span><span class="chev">▼</span></div>
+  <div class="step-body"><ul><li>Выбираем отель / ночёвку в Польше (если нужна)</li><li>Помогаем купить билеты до Польши</li></ul></div></div>
+
+  <div class="step"><div class="step-head" onclick="tog(this)"><div class="step-num n13">8</div><span class="step-ico">📞</span><span class="step-title">Инструктаж по поездке в США</span><span class="chev">▼</span></div>
+  <div class="step-body"><ul><li>Аэропорты</li><li>Паспортный контроль</li><li><strong>Чек-ин за 24 часа</strong></li></ul></div></div>
+
+  <div class="step"><div class="step-head" onclick="tog(this)"><div class="step-num n14">9</div><span class="step-ico">📑</span><span class="step-title">Правила по командировкам — на всякий случай</span><span class="chev">▼</span></div>
+  <div class="step-body"><span class="tag">📄 3.3. Business Trip. Tickets buying and hotels booking.docx</span></div></div>
+</div>
+
+<!-- ════════ SCC POLAND ПРОЦЕСС ════════ -->
+<div id="scc" class="page">
+  <div class="hero h-green"><h1>🇵🇱 Процесс — SCC Poland</h1><p>Отличия от ISD выделены оранжевым</p><span class="hero-bg">⚠️</span></div>
+
+  <div class="step"><div class="step-head" onclick="tog(this)"><div class="step-num n7">1</div><span class="step-ico">📩</span><span class="step-title">Запрос от Лизы</span><span class="chev open">▼</span></div>
+  <div class="step-body open"><div class="callout c-warn">⚠️ ТОЛЬКО от Лизы!</div></div></div>
+
+  <div class="step"><div class="step-head" onclick="tog(this)"><div class="step-num n7">2</div><span class="step-ico">🏢</span><span class="step-title">Выясняем компанию</span><span class="chev">▼</span></div>
+  <div class="step-body"><div class="callout c-info">📌 EPE → Office data → Labour Contract Information</div></div></div>
+
+  <div class="step"><div class="step-head" onclick="tog(this)"><div class="step-num n7">3</div><span class="step-ico">✉️</span><span class="step-title">Пишем письмо сотруднику</span><span class="chev">▼</span></div>
+  <div class="step-body"><p>Тексты — в разделе <strong>"Письма сотруднику"</strong>.</p></div></div>
+
+  <div class="step"><div class="step-head" onclick="tog(this)"><div class="step-num n8">4</div><span class="step-ico">📊</span><span class="step-title">Вносим в Smartsheet</span><span class="chev">▼</span></div>
+  <div class="step-body"><a class="pill" href="https://www.smartsheet.com/" target="_blank">→ B1 ISD Program</a></div></div>
+
+  <div class="step"><div class="step-head" onclick="tog(this)"><div class="step-num n8">5</div><span class="step-ico">📝</span><span class="step-title">Заполняем DS-160</span><span class="chev">▼</span></div>
+  <div class="step-body"><a class="pill" href="https://ceac.state.gov/genniv/" target="_blank">→ Анкета DS-160</a><div class="callout c-warn">❗ Не сабмитить без проверки!</div></div></div>
+
+  <div class="step"><div class="step-head" onclick="tog(this)"><div class="step-num n9">6</div><span class="step-ico">📋</span><span class="step-title">Готовим Memo — отправляем Лизе</span><span class="chev">▼</span></div>
+  <div class="step-body"><div class="callout c-diff">🔴 В Memo: <strong>SCC Soft Computer Poland</strong> (не ISD!)</div><button class="path-btn" onclick="cp(this,'\\\\isdfs\\Office\\HR_Data\\Internal\\Business_trips\\B1\\All_DOCS\\examples opinioin, memo, port of entry ltrs')">📁 \\isdfs\...\examples opinioin, memo, port of entry ltrs</button></div></div>
+
+  <div class="step"><div class="step-head" onclick="tog(this)"><div class="step-num n9">7</div><span class="step-ico">✍️</span><span class="step-title">Opinion — подписывает SoftSystem</span><span class="chev">▼</span></div>
+  <div class="step-body">
+    <div class="callout c-diff">🔴 В Opinion: <strong>SCC Soft Computer Poland</strong> (не ISD!)</div>
+    <button class="path-btn" onclick="cp(this,'\\\\isdfs\\Office\\HR_Data\\Internal\\Business_trips\\B1\\All_DOCS\\examples opinioin, memo, port of entry ltrs (opinion SCC-Poland)')">📁 \\isdfs\...\examples opinioin, memo, port of entry ltrs (opinion SCC-Poland)</button>
+    <div class="email-box" style="margin-top:10px">
+      <div class="e-label">Подписант</div><div class="e-val">Joanna Waligora @SoftSystem — aw@softsystem.pl</div>
+      <div class="e-label">В копии</div><div class="e-val">tkas &nbsp;·&nbsp; Urszula Dombeck-Klein — udombeck@softsystem.pl</div>
+    </div>
+    <div class="callout c-diff">🖨️ Просим поляков распечатать цветном: invitation letter, opinion, insurance</div>
+  </div></div>
+
+  <div class="step"><div class="step-head" onclick="tog(this)"><div class="step-num n1">8</div><span class="step-ico">✅</span><span class="step-title">Проверяем анкету и личный кабинет</span><span class="chev">▼</span></div>
+  <div class="step-body"><div class="callout c-info">📌 Вверху: <strong>"visa receiving in Poland"</strong></div></div></div>
+
+  <div class="step"><div class="step-head" onclick="tog(this)"><div class="step-num n1">9</div><span class="step-ico">📅</span><span class="step-title">Человек выбирает дату</span><span class="chev">▼</span></div>
+  <div class="step-body"><p>После оплаты сбора — выбирает дату собеседования.</p></div></div>
+
+  <div class="step"><div class="step-head" onclick="tog(this)"><div class="step-num n2">10</div><span class="step-ico">🗂️</span><span class="step-title">Регистрируем БТ в EPE</span><span class="chev">▼</span></div>
+  <div class="step-body"><ul><li>Мин. <strong>5 рабочих дней</strong> в Польшу (для украинцев)</li><li>+ <strong>1-2 дня</strong> на дорогу</li></ul></div></div>
+
+  <div class="step"><div class="step-head" onclick="tog(this)"><div class="step-num n2">11</div><span class="step-ico">📨</span><span class="step-title">Invitation Letter от Лизы</span><span class="chev">▼</span></div>
+  <div class="step-body"><div class="callout c-diff">🔴 В письме: <strong>SCC Soft Computer Poland</strong></div></div></div>
+
+  <div class="step"><div class="step-head" onclick="tog(this)"><div class="step-num n3">12</div><span class="step-ico">🛡️</span><span class="step-title">Готовим страховку</span><span class="chev">▼</span></div>
+  <div class="step-body"><p>5 рабочих дней на даты поездки.</p></div></div>
+
+  <div class="step"><div class="step-head" onclick="tog(this)"><div class="step-num n3">13</div><span class="step-ico">🔍</span><span class="step-title">Документы на проверку и распечатать</span><span class="chev">▼</span></div>
+  <div class="step-body"><p>Скидываем: invitation letter, opinion, insurance. Распечатываем.</p></div></div>
+
+  <div class="step"><div class="step-head" onclick="tog(this)"><div class="step-num n10">14</div><span class="step-ico">🎫</span><span class="step-title">Правила перед покупкой билетов</span><span class="chev">▼</span></div>
+  <div class="step-body"><span class="tag">📄 3.3. Business Trip. Tickets buying and hotels booking.docx</span></div></div>
+
+  <div class="step"><div class="step-head" onclick="tog(this)"><div class="step-num n10">15</div><span class="step-ico">🧾</span><span class="step-title">Квитанции — отправляем полякам</span><span class="chev">▼</span></div>
+  <div class="step-body"><p>Собираем чеки и отправляем. Подробности — в разделе <strong>"Квитанции в SCC"</strong>.</p><div class="callout c-info">📁 Файлы переименовываем — чтобы понятно какой чек за что</div></div></div>
+
+  <div class="step"><div class="step-head" onclick="tog(this)"><div class="step-num n11">16</div><span class="step-ico">📅</span><span class="step-title">Сообщаем Лизе дату</span><span class="chev">▼</span></div>
+  <div class="step-body"><p>Как только выбрали — сразу сообщаем Лизе.</p></div></div>
+
+  <div class="step"><div class="step-head" onclick="tog(this)"><div class="step-num n11">17</div><span class="step-ico">📞</span><span class="step-title">Инструктаж перед собеседованием</span><span class="chev">▼</span></div>
+  <div class="step-body"><a class="pill" href="https://youtu.be/eW799gzU0ww" target="_blank">→ Видео: прохождение собеседования в Варшаве</a></div></div>
+
+  <div class="step"><div class="step-head" onclick="tog(this)"><div class="step-num n12">18</div><span class="step-ico">🏛️</span><span class="step-title">Собеседование и результат</span><span class="chev">▼</span></div>
+  <div class="step-body"><p>Если дали визу — скан → Лизе. Если отказали — тоже сообщаем.</p></div></div>
+
+  <div class="step"><div class="step-head" onclick="tog(this)"><div class="step-num n13">19</div><span class="step-ico">🎫</span><span class="step-title">Билеты в Штаты</span><span class="chev">▼</span></div>
+  <div class="step-body"><p>Лиза пишет кто покупает: мы или SCC.</p></div></div>
+
+  <div class="step"><div class="step-head" onclick="tog(this)"><div class="step-num n13">20</div><span class="step-ico">📋</span><span class="step-title">Письмо для границы, страховка, инструктаж</span><span class="chev">▼</span></div>
+  <div class="step-body">
+    <div class="callout c-diff">🔴 В файле Лизы: <strong>SCC Soft Computer Poland</strong></div>
+    <button class="path-btn" onclick="cp(this,'\\\\isdfs\\Office\\HR_Data\\Internal\\Business_trips\\B1\\All_DOCS\\examples opinioin, memo, port of entry ltrs')">📁 \\isdfs\...\examples opinioin, memo, port of entry ltrs</button>
+    <p style="margin-top:8px">Страховка + подписываем <span class="tag">3.1. Foreign Business Trip Policy.docx</span> (меняем дату в шапке).</p>
+    <p style="margin-top:6px">Созваниваемся: отель, билеты до Польши, инструктаж (аэропорты, паспортный контроль, чек-ин за 24ч).</p>
+  </div></div>
+</div>
+
+<!-- ════════ ПИСЬМА ════════ -->
+<div id="letters" class="page">
+  <div class="hero h-purple"><h1>✉️ Письма сотруднику</h1><p>SCC Poland — готовые тексты</p><span class="hero-bg">📨</span></div>
+
+  <div class="step"><div class="step-head" onclick="tog(this)"><div class="step-num n1">1</div><span class="step-ico">✉️</span><span class="step-title">Письмо 1 — Первый контакт, скан паспорта</span><span class="chev open">▼</span></div>
+  <div class="step-body open">
+    <div class="callout c-info">📌 Отправляем сразу после запроса от Лизы</div>
+    <div class="letter-box"><div class="letter-text">Привет, ...
+Для тебя / вас запланировали командировку в Штаты.
+
+📌 Пришли / пришлите мне, пожалуйста, фото первой стр загран. паспорта :)
+
+Пока можно начать заполнять анкету, не сабмитить, а просто сохранять. Мы анкету сабмитим вместе, проверив её, и вносим туда максимально чёткие даты от менеджера.
+
+Заполнение анкеты → https://ceac.state.gov/genniv/
+(страна получения визы — Польша, г. Краков / г. Варшава, лучше Варшава)
+
+Алгоритм:
+- регистрируемся / восстанавливаем кабинет → https://portal.ustraveldocs.com/applicanthome
+  (страна — Польша, г. Краков / Варшава)
+  ВАЖНО: вверху на синем — "visa receiving in Poland"
+- заполняем анкету (сабмитим вместе, после проверки)
+- возвращаемся в кабинет: паспортные данные, место получения паспорта, номер анкеты
+- оплачиваем сбор
+- выбираем свободную дату
+- параллельно переводим документы на англ.
+
+От тебя нужно будет ⬇️:
+- паспорт загран (expiry date не менее 6 мес)
+- подтверждение анкеты (на почту после сабмита)
+- письмо-подтверждение на собеседование (на почту после выбора даты)
+- квитанция об оплате сбора (в Привате)
+- фото → https://travel.state.gov/content/travel/en/us-visas/visa-information-resources/photos.html
+  (приаттачить к анкете + бумажное фото)
+- выписка из банка за 6 мес на англ.
+  * Если ISD / SCC Poland — уточните как получить (в каждой стране по-разному)
+- документ, подтверждающий что вернётесь (брак / дети / недвижимость) — перевод + нотариус
+- выписка по ЧП — перевод + нотариус
+  * Если ISD / SCC Poland — уточните в налоговой / где открывали ФОП
+- диплом (если не двуязычный — перевод на англ.)
+- контракт ЧП с ISD / SCC Poland (не переводим, берём на всякий случай)
+
+Мы будем готовить ⬇️:
+- страховку
+- opinion — рекомендательное письмо (бланк ISD)
+- invitation letter от SCC (бланк SCC)
+
+Заполняя анкету — сохраняйте в PDF и кидайте мне на проверку 🌸
+Вопросы: mrya@isd.dp.ua</div></div>
+  </div></div>
+
+  <div class="step"><div class="step-head" onclick="tog(this)"><div class="step-num n2">2</div><span class="step-ico">✉️</span><span class="step-title">Письмо 2 — Подсказки по заполнению DS-160</span><span class="chev">▼</span></div>
+  <div class="step-body">
+    <div class="callout c-info">📌 Отправляем вместе с файлом DS-160 tips</div>
+    <button class="path-btn" onclick="cp(this,'\\\\isdfs\\Office\\HR_Data\\Internal\\Business_trips\\B1\\All_DOCS\\examples opinioin, memo, port of entry ltrs — DS 160 tips')">📁 DS 160 tips — \\isdfs\...\examples opinioin, memo, port of entry ltrs</button>
+    <div class="letter-box" style="margin-top:10px"><div class="letter-text">Отправляю ещё файл с информацией, которая поможет при заполнении анкеты.
+
+Требования к заполнению DS-160:
+
+1. Место/страна собеседования в DS-160 = место записи на собеседование.
+
+2. Все ответы — только на английском (кроме пункта с именем/фамилией на украинском).
+
+3. ⚠️ Сеанс истекает через 20 минут без активности — вся информация исчезнет!
+   - Запишите номер анкеты (правый верхний угол) или скачайте файл
+   - Регулярно нажимайте "Save"
+
+4. При загрузке фото — без очков!
+
+Вопросы: mrya@isd.dp.ua</div></div>
+  </div></div>
+</div>
+
+<!-- ════════ ДОКУМЕНТЫ ════════ -->
+<div id="docs" class="page">
+  <div class="hero h-orange"><h1>📄 Документы — SCC Poland</h1><p>Что собирает сотрудник и что готовим мы</p><span class="hero-bg">📎</span></div>
+
+  <div class="step"><div class="step-head" onclick="tog(this)"><div class="step-num n13">👤</div><span class="step-ico"></span><span class="step-title">От сотрудника</span><span class="chev open">▼</span></div>
+  <div class="step-body open">
+    <div class="dgrid">
+      <div class="dcard"><div class="dcard-title">📘 Загранпаспорт</div><div class="dcard-desc">Срок действия 6+ мес</div></div>
+      <div class="dcard"><div class="dcard-title">📋 Подтверждение DS-160</div><div class="dcard-desc">На почту после сабмита</div></div>
+      <div class="dcard"><div class="dcard-title">📅 Письмо на собеседование</div><div class="dcard-desc">На почту после выбора даты</div></div>
+      <div class="dcard"><div class="dcard-title">💳 Квитанция об оплате</div><div class="dcard-desc">В Привате после оплаты</div></div>
+      <div class="dcard"><div class="dcard-title">📸 Фото 5×5 см</div><div class="dcard-desc">По требованиям посольства. Без очков!</div></div>
+      <div class="dcard"><div class="dcard-title">🏦 Выписка из банка (6 мес)</div><div class="dcard-desc">На англ. Для SCC Poland — уточнять</div></div>
+      <div class="dcard"><div class="dcard-title">👨‍👩‍👧 Документ о возвращении</div><div class="dcard-desc">Брак / дети / недвижимость. Перевод + нотариус.</div></div>
+      <div class="dcard"><div class="dcard-title">📑 Выписка по ЧП</div><div class="dcard-desc">Перевод + нотариус. Польский ЧП — в налоговой.</div></div>
+      <div class="dcard"><div class="dcard-title">🎓 Диплом</div><div class="dcard-desc">Если не двуязычный — перевод</div></div>
+      <div class="dcard"><div class="dcard-title">📃 Контракт ЧП с SCC Poland</div><div class="dcard-desc">Не переводим, берём на всякий случай</div></div>
+    </div>
+    <div class="callout c-info" style="margin-top:14px">🏛️ <strong>Обязательные для посольства:</strong> Паспорт · DS-160 · Квитанция · Appointment letter · Фото 5×5<br>
+    Все документы — на английском или польском!<br>
+    <a class="pill" href="https://www.ustraveldocs.com/pl/en/step-1#visa-types" target="_blank" style="margin-top:6px">→ ustraveldocs.com</a></div>
+  </div></div>
+
+  <div class="step"><div class="step-head" onclick="tog(this)"><div class="step-num n14">🏢</div><span class="step-ico"></span><span class="step-title">Готовим мы</span><span class="chev">▼</span></div>
+  <div class="step-body">
+    <div class="dgrid">
+      <div class="dcard"><div class="dcard-title">🛡️ Страховка</div><div class="dcard-desc">На 5 рабочих дней поездки</div></div>
+      <div class="dcard"><div class="dcard-title">✍️ Opinion</div><div class="dcard-desc">Бланк ISD, подписывает Joanna Waligora</div><div class="dcard-note">🔴 SCC Soft Computer Poland</div></div>
+      <div class="dcard"><div class="dcard-title">📨 Invitation Letter</div><div class="dcard-desc">Готовит Лиза, бланк SCC</div><div class="dcard-note">🔴 SCC Soft Computer Poland</div></div>
+      <div class="dcard"><div class="dcard-title">📋 Embassy Memo</div><div class="dcard-desc">Отправляем Лизе со сканом паспорта</div><div class="dcard-note">🔴 SCC Soft Computer Poland</div></div>
+    </div>
+  </div></div>
+</div>
+
+<!-- ════════ КВИТАНЦИИ ════════ -->
+<div id="receipts" class="page">
+  <div class="hero h-red"><h1>🧾 Квитанции в SCC Poland</h1><p>Кому слать, тема, готовый текст на английском</p><span class="hero-bg">💸</span></div>
+
+  <div class="step"><div class="step-head" onclick="tog(this)"><div class="step-num n10">📧</div><span class="step-ico"></span><span class="step-title">Письмо с квитанциями</span><span class="chev open">▼</span></div>
+  <div class="step-body open">
+    <div class="email-box">
+      <div class="e-label">Кому</div>
+      <div class="e-val">Urszula Dombeck-Klein — udombeck@softsystem.pl</div>
+      <div class="e-val">Katarzyna Wawrzyszko — kwawrzy@softsystem.pl</div>
+      <div class="e-label">В копии</div>
+      <div class="e-val">Joanna Waligora — aw@softsystem.pl</div>
+      <div class="e-val">Tetiana Kasian — tkas@isd.dp.ua</div>
+      <div class="e-val">Yevheniia Hrodska — egro@isd.dp.ua</div>
+      <div class="e-label">Тема</div>
+      <div class="e-val">SCC Poland, &lt;Name Surname&gt;, trip to SCC (receipts)</div>
+    </div>
+    <div class="callout c-warn">📁 Файлы переименовываем — чтобы понятно какой файл за что!</div>
+    <div class="letter-box en" style="margin-top:12px"><div class="letter-text">Dear Katarzyna and Urszula,
+
+As agreed, I am sending the receipts and tickets for the expenses incurred by [Name Surname] for verification. She was obtaining a visa for a business trip to SCC.
+
+For today, she has had the following expenses:
+• Visa fee
+• Payment for document translation into English (2 files)
+• Tickets from [City] to [City] and back (2 files)
+• Payment for one night at a hotel
+The hotel stay was necessary because her embassy interview was scheduled for 8 a.m., so she arrived in advance.
+
+I also have a question: obtaining the visa required a two-day trip ([dates]). Is she entitled to per diem for these days? If so, what is the amount?
+
+Thank you for your time and assistance.</div></div>
+  </div></div>
+</div>
+
+</div><!-- /main -->
+
+<script>
+function go(id) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  document.querySelectorAll('.nav-item').forEach(n => {
+    if (n.getAttribute('onclick') && n.getAttribute('onclick').includes("'"+id+"'")) n.classList.add('active');
+  });
+  window.scrollTo({top:0, behavior:'smooth'});
+  document.getElementById('sb').classList.remove('open');
+}
+
+function tog(header) {
+  const body = header.nextElementSibling;
+  const chev = header.querySelector('.chev');
+  const open = body.classList.contains('open');
+  body.classList.toggle('open', !open);
+  if (chev) chev.classList.toggle('open', !open);
+}
+
+function cp(btn, path) {
+  navigator.clipboard.writeText(path).then(() => {
+    const orig = btn.innerHTML;
+    btn.innerHTML = '✓ Скопировано!';
+    btn.style.background = '#d4edda';
+    btn.style.color = '#1a7f3c';
+    setTimeout(() => { btn.innerHTML = orig; btn.style.background = ''; btn.style.color = ''; }, 2000);
+  });
+}
+</script>
+</body>
+</html>
