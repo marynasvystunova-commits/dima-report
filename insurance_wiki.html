@@ -1,0 +1,878 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Страхування ISD 2025–2026</title>
+<style>
+:root {
+  --sidebar-w: 240px;
+  --bg: #f0f2f8;
+  --sidebar-bg: #1e1b2e;
+  --sidebar-text: #c9c4e8;
+  --sidebar-active: #a78bfa;
+  --accent: #7c3aed;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: Arial, sans-serif; background: var(--bg); color: #222; display: flex; min-height: 100vh; }
+
+/* SIDEBAR */
+.sidebar {
+  width: var(--sidebar-w); background: var(--sidebar-bg);
+  position: fixed; top: 0; left: 0; height: 100vh;
+  overflow-y: auto; padding: 24px 0; z-index: 100;
+}
+.sidebar-logo { color: #fff; font-size: 15px; font-weight: 800; padding: 0 20px 20px; border-bottom: 1px solid #2d2a40; }
+.sidebar-logo span { font-size: 20px; }
+.sidebar-section { padding: 16px 20px 4px; font-size: 10px; font-weight: 700; color: #6b6888; text-transform: uppercase; letter-spacing: 1px; }
+.sidebar a {
+  display: flex; align-items: center; gap: 10px;
+  padding: 9px 20px; color: var(--sidebar-text);
+  font-size: 13px; text-decoration: none; cursor: pointer;
+  border-left: 3px solid transparent; transition: all .15s;
+}
+.sidebar a:hover { color: #fff; background: rgba(255,255,255,.05); }
+.sidebar a.active { color: var(--sidebar-active); border-left-color: var(--sidebar-active); background: rgba(167,139,250,.08); font-weight: 700; }
+.sidebar a .ico { font-size: 16px; flex-shrink: 0; }
+
+/* MAIN */
+.main { margin-left: var(--sidebar-w); flex: 1; }
+.page { display: none; padding: 36px 40px 80px; }
+.page.active { display: block; }
+
+/* HERO */
+.hero {
+  border-radius: 16px; padding: 32px 36px; margin-bottom: 28px; color: #fff;
+}
+.hero h1 { font-size: 26px; font-weight: 900; margin-bottom: 6px; }
+.hero p { font-size: 14px; opacity: .8; }
+
+/* SEARCH BAR */
+.search-wrap { position: relative; margin-bottom: 28px; }
+.search-wrap input {
+  width: 100%; padding: 14px 50px 14px 18px;
+  border-radius: 12px; border: 2px solid #ddd;
+  font-size: 15px; outline: none; transition: border .15s;
+  background: #fff; box-shadow: 0 2px 8px rgba(0,0,0,.06);
+}
+.search-wrap input:focus { border-color: var(--accent); }
+.search-wrap .search-icon { position: absolute; right: 16px; top: 50%; transform: translateY(-50%); font-size: 20px; pointer-events: none; }
+.search-results { margin-top: 12px; }
+.search-hit {
+  background: #fff; border-radius: 10px; padding: 14px 18px; margin-bottom: 8px;
+  border-left: 4px solid var(--accent); box-shadow: 0 1px 4px rgba(0,0,0,.06);
+  cursor: pointer; transition: background .1s;
+}
+.search-hit:hover { background: #f5f3ff; }
+.search-hit h4 { font-size: 14px; font-weight: 700; color: #1a0050; margin-bottom: 4px; }
+.search-hit p { font-size: 13px; color: #555; line-height: 1.5; }
+.search-hit .section-tag { font-size: 11px; font-weight: 700; color: var(--accent); margin-bottom: 4px; }
+mark { background: #fde68a; border-radius: 3px; padding: 0 2px; }
+.no-results { color: #888; font-size: 14px; padding: 10px 0; }
+
+/* CARDS GRID */
+.cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px; margin-bottom: 24px; }
+.card {
+  background: #fff; border-radius: 12px; padding: 20px;
+  box-shadow: 0 1px 6px rgba(0,0,0,.07);
+}
+.card-icon { font-size: 28px; margin-bottom: 8px; }
+.card h3 { font-size: 15px; font-weight: 800; color: #1a0050; margin-bottom: 6px; }
+.card p, .card li { font-size: 13px; color: #444; line-height: 1.7; }
+.card ul { padding-left: 16px; }
+.card .amount { font-size: 22px; font-weight: 900; color: var(--accent); margin: 4px 0; }
+
+/* COLLAPSIBLE */
+.step { background: #fff; border-radius: 12px; margin-bottom: 10px; box-shadow: 0 1px 6px rgba(0,0,0,.07); overflow: hidden; }
+.step-header { display: flex; align-items: center; gap: 14px; padding: 14px 18px; cursor: pointer; user-select: none; transition: background .15s; }
+.step-header:hover { background: #f8f6ff; }
+.step-num { width: 34px; height: 34px; border-radius: 50%; flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 14px; color: #fff; }
+.step-title { font-size: 14px; font-weight: 700; color: #1a0050; flex: 1; }
+.step-icon { font-size: 18px; flex-shrink: 0; }
+.step-toggle { font-size: 11px; color: #aaa; transition: transform .2s; }
+.step-toggle.open { transform: rotate(180deg); }
+.step-body { padding: 0 18px 16px 66px; display: none; }
+.step-body.open { display: block; }
+.step-body p, .step-body li { font-size: 13px; color: #444; line-height: 1.7; margin-bottom: 6px; }
+.step-body ul { padding-left: 16px; }
+
+/* CALLOUTS */
+.warn { background: #fff8e1; border-left: 4px solid #f59e0b; border-radius: 0 8px 8px 0; padding: 10px 14px; font-size: 13px; color: #7a4f00; font-weight: 600; margin: 10px 0; line-height: 1.6; }
+.info { background: #e0f2fe; border-left: 4px solid #0284c7; border-radius: 0 8px 8px 0; padding: 10px 14px; font-size: 13px; color: #0c4a6e; margin: 10px 0; line-height: 1.6; }
+.ok { background: #dcfce7; border-left: 4px solid #16a34a; border-radius: 0 8px 8px 0; padding: 10px 14px; font-size: 13px; color: #14532d; margin: 10px 0; line-height: 1.6; }
+.danger { background: #fee2e2; border-left: 4px solid #dc2626; border-radius: 0 8px 8px 0; padding: 10px 14px; font-size: 13px; color: #7f1d1d; font-weight: 600; margin: 10px 0; line-height: 1.6; }
+
+/* HOTLINE BADGE */
+.hotline {
+  display: inline-flex; align-items: center; gap: 10px;
+  background: linear-gradient(135deg, #7c3aed, #a855f7);
+  color: #fff; border-radius: 12px; padding: 12px 20px;
+  font-size: 18px; font-weight: 900; margin: 12px 0;
+  box-shadow: 0 4px 12px rgba(124,58,237,.3);
+}
+
+/* TABLE */
+table { width: 100%; border-collapse: collapse; margin: 12px 0; font-size: 13px; }
+th { background: #7c3aed; color: #fff; padding: 10px 12px; text-align: left; }
+td { padding: 9px 12px; border-bottom: 1px solid #eee; }
+tr:nth-child(even) td { background: #f9f7ff; }
+
+/* SECTION TITLE */
+.section-title { font-size: 18px; font-weight: 800; color: #1a0050; margin: 28px 0 14px; border-left: 4px solid var(--accent); padding-left: 12px; }
+
+/* COLOR NUMS */
+.n1{background:#7c3aed} .n2{background:#6d28d9} .n3{background:#5b21b6}
+.n4{background:#4c1d95} .n5{background:#7c3aed} .n6{background:#a855f7}
+.n7{background:#9333ea} .n8{background:#7c3aed} .n9{background:#6d28d9}
+</style>
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<div class="sidebar">
+  <div class="sidebar-logo"><span>🛡️</span> Страхування ISD</div>
+  <div class="sidebar-section">Пошук</div>
+  <a class="ico" onclick="showPage('search')" id="nav-search">🔍 Пошук відповіді</a>
+  <div class="sidebar-section">Розділи</div>
+  <a onclick="showPage('program')" id="nav-program"><span class="ico">📋</span> Програма страхування</a>
+  <a onclick="showPage('exclusions')" id="nav-exclusions"><span class="ico">🚫</span> Що НЕ покривається</a>
+  <a onclick="showPage('actions')" id="nav-actions"><span class="ico">🚨</span> Дії при страховому випадку</a>
+  <a onclick="showPage('meds')" id="nav-meds"><span class="ico">💊</span> Ліки та відшкодування</a>
+  <a onclick="showPage('epe')" id="nav-epe"><span class="ico">💻</span> Внесення квитанції EPE</a>
+</div>
+
+<!-- PAGES -->
+<div class="main">
+
+<!-- SEARCH PAGE -->
+<div class="page active" id="page-search">
+  <div class="hero" style="background: linear-gradient(135deg, #7c3aed, #a855f7);">
+    <h1>🔍 Пошук по страховці</h1>
+    <p>Напишіть питання — знайдемо відповідь у документах</p>
+  </div>
+  <div class="search-wrap">
+    <input type="text" id="searchInput" placeholder="Наприклад: стоматологія, що не покривається, як подати документи..." oninput="doSearch(this.value)">
+    <span class="search-icon">🔍</span>
+  </div>
+  <div class="search-results" id="searchResults">
+    <p style="color:#888; font-size:14px;">Почніть вводити питання — результати з'являться тут</p>
+  </div>
+</div>
+
+<!-- PROGRAM PAGE -->
+<div class="page" id="page-program">
+  <div class="hero" style="background: linear-gradient(135deg, #0f766e, #0d9488);">
+    <h1>📋 Програма страхування</h1>
+    <p>Договір 03/04-1К-000169159 · ПрАТ УСК «КНЯЖА ВІЄННА ІНШУРАНС ГРУП»</p>
+  </div>
+
+  <div class="cards">
+    <div class="card">
+      <div class="card-icon">💰</div>
+      <h3>Страхова сума</h3>
+      <div class="amount">150 000 грн</div>
+      <p>На одну застраховану особу (МС — страхування здоров'я)</p>
+    </div>
+    <div class="card">
+      <div class="card-icon">📅</div>
+      <h3>Страховий платіж</h3>
+      <div class="amount">4 500 грн</div>
+      <p>Річний платіж на одну особу</p>
+    </div>
+    <div class="card">
+      <div class="card-icon">🏥</div>
+      <h3>Клас клінік</h3>
+      <p>Ліцензовані відомчі та державні базові лікарні, приватні ЛПУ на рівні цін базового ЛПУ. Якщо послуги нема — 50% вартості.</p>
+    </div>
+    <div class="card">
+      <div class="card-icon">📞</div>
+      <h3>Гаряча лінія</h3>
+      <div class="hotline">☎️ 0 800 218 800</div>
+      <p>Цілодобово, безкоштовно</p>
+    </div>
+  </div>
+
+  <div class="section-title">Види медичної допомоги</div>
+
+  <div class="step" data-keywords="амбулаторна поліклінічна лікар консультація аналізи діагностика ЕКГ МРТ рентген УЗД маніпуляції хірургія ліки медикаменти доставка аптека">
+    <div class="step-header" onclick="toggle(this)">
+      <div class="step-num n1">1</div>
+      <span class="step-icon">🩺</span>
+      <span class="step-title">Амбулаторно-поліклінічна допомога з медикаментами</span>
+      <span class="step-toggle">▼</span>
+    </div>
+    <div class="step-body">
+      <p><strong>Ціль:</strong> лікування гострих захворювань, загострення хронічних (1 раз на рік, курс до 30 днів), наслідків травм/опіків/отруєнь.</p>
+      <p><strong>Що входить:</strong></p>
+      <ul>
+        <li>Консультація лікаря (терапевт, вузький спеціаліст) в базових лікарнях</li>
+        <li>Діагностика: лабораторія, ЕКГ, МРТ, ФГДС, рентген, УЗД органів черевної порожнини та малого тазу</li>
+        <li>Хірургічні операції в умовах поліклініки</li>
+        <li>Денний стаціонар</li>
+        <li>Фізіотерапія — до 10 сеансів за час дії договору</li>
+        <li>Виклик лікаря додому або в офіс</li>
+        <li>Лікувальний масаж / мануальна терапія — 1 зона тіла, до 10 процедур</li>
+        <li>Оформлення лікарняного листа</li>
+      </ul>
+      <p><strong>Ліки:</strong></p>
+      <ul>
+        <li>Доставка медикаментів додому / в офіс — цілодобово в межах міста</li>
+        <li>Безкоштовно в аптеках-партнерах</li>
+        <li>Компенсація за самостійну купівлю — тільки після узгодження зі страховою</li>
+      </ul>
+      <div class="warn">Фітотерапія: 1 курс на рік, до 30 днів. Пробіотики при лікуванні антибіотиками: «Лактіале» 30 капсул.</div>
+    </div>
+  </div>
+
+  <div class="step" data-keywords="стаціонар госпіталізація лікарня ургентна невідкладна операція реанімація анестезія">
+    <div class="step-header" onclick="toggle(this)">
+      <div class="step-num n2">2</div>
+      <span class="step-icon">🏨</span>
+      <span class="step-title">Невідкладна стаціонарна допомога</span>
+      <span class="step-toggle">▼</span>
+    </div>
+    <div class="step-body">
+      <p>Ургентна госпіталізація до ліцензованих державних клінік. У стандартні палати, з можливим переведенням у підвищену комфортність.</p>
+      <p><strong>Покривається:</strong></p>
+      <ul>
+        <li>Оперативне та консервативне лікування</li>
+        <li>Консультації лікарів усіх профілів</li>
+        <li>Лабораторна та інструментальна діагностика</li>
+        <li>Інтенсивна терапія (реанімація)</li>
+        <li>Анестезіологічна допомога</li>
+        <li>Фізіотерапевтичні процедури</li>
+        <li>Медикаменти (7 днів на основне захворювання)</li>
+        <li>Харчування стандартне</li>
+        <li>Транспортування в інший ЛПУ за медичними показаннями</li>
+      </ul>
+      <div class="section-title" style="font-size:14px; margin: 12px 0 8px;">Діагнози для ургентної госпіталізації</div>
+      <table>
+        <tr><th>Система</th><th>Стани</th></tr>
+        <tr><td>Серцево-судинна</td><td>Інфаркт міокарду, нестабільна стенокардія, гостра серцева недостатність, набряк легенів, гіпертонічний криз, тромбоз</td></tr>
+        <tr><td>Дихальна</td><td>Астматичний статус, пневмоторакс, гострі запальні процеси</td></tr>
+        <tr><td>Травлення</td><td>Апендицит, кишкова непрохідність, холецистит, панкреатит, шлунково-кишкова кровотеча, перитоніт</td></tr>
+        <tr><td>Нервова</td><td>Гостре порушення мозкового кровообігу (інсульт), коми, критичні стани, травми нервової системи</td></tr>
+        <tr><td>Ендокринна</td><td>Коматозні та кризові стани (діабет тощо)</td></tr>
+        <tr><td>Інфекційні</td><td>Захворювання з вираженим інтоксикаційним синдромом, гепатит А</td></tr>
+        <tr><td>Сечостатева</td><td>Гостра ниркова недостатність, ниркова коліка, гостра затримка сечі</td></tr>
+        <tr><td>Гінекологія</td><td>Масивні кровотечі, стани що потребують термінового втручання</td></tr>
+        <tr><td>Травми</td><td>Переломи, опіки II–III ст., теплові удари, отруєння (крім алкогольного та наркотичного), внутрішньочерепні травми</td></tr>
+      </table>
+    </div>
+  </div>
+
+  <div class="step" data-keywords="швидка невідкладна допомога виклик бригада транспортування евакуація">
+    <div class="step-header" onclick="toggle(this)">
+      <div class="step-num n3">3</div>
+      <span class="step-icon">🚑</span>
+      <span class="step-title">Швидка та невідкладна допомога</span>
+      <span class="step-toggle">▼</span>
+    </div>
+    <div class="step-body">
+      <ul>
+        <li>Цілодобовий виклик швидкої (державної або приватної)</li>
+        <li>Невідкладна допомога за життєвими показами</li>
+        <li>Експрес-діагностика та лабораторні тести</li>
+        <li>Медикаментозне забезпечення на догоспітальному етапі</li>
+        <li>Транспортування в ЛПУ для госпіталізації</li>
+        <li>Медична евакуація в межах України</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="step" data-keywords="стоматологія зуби зубний зуб стоматолог карієс пломба лікування видалення щелепа анестезія рентген">
+    <div class="step-header" onclick="toggle(this)">
+      <div class="step-num n4">4</div>
+      <span class="step-icon">🦷</span>
+      <span class="step-title">Стоматологічна допомога — ліміт 1750 грн</span>
+      <span class="step-toggle">▼</span>
+    </div>
+    <div class="step-body">
+      <div class="cards" style="margin:0 0 12px;">
+        <div class="card">
+          <h3>Планова — 1250 грн</h3>
+          <ul>
+            <li>Огляд стоматолога</li>
+            <li>Знеболювання (анестезія)</li>
+            <li>Рентген-діагностика</li>
+            <li>Тимчасові та постійні пломби (фотополімерні)</li>
+            <li>Видалення зуба</li>
+            <li>Лікування пульпіту, карієсу, пародонтозу</li>
+            <li>Лікування слизової оболонки</li>
+            <li>Зняття зубного каменю (1 раз на рік при запаленні)</li>
+            <li>Реставрація (протезування)</li>
+          </ul>
+        </div>
+        <div class="card">
+          <h3>Екстрена — 500 грн</h3>
+          <ul>
+            <li>Гострий зубний біль</li>
+            <li>Гострий пульпіт / загострення хронічного</li>
+            <li>Рентген, анестезія</li>
+            <li>Чистка каналів (депульпація)</li>
+            <li>Тимчасова пломба після ендодонтики</li>
+            <li>Видалення зуба, кюретаж при абсцесі</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="step" data-keywords="критичні захворювання онкологія рак діабет туберкульоз хіміотерапія радіотерапія">
+    <div class="step-header" onclick="toggle(this)">
+      <div class="step-num n5">5</div>
+      <span class="step-icon">🏥</span>
+      <span class="step-title">Критичні захворювання (вперше виявлені)</span>
+      <span class="step-toggle">▼</span>
+    </div>
+    <div class="step-body">
+      <table>
+        <tr><th>Захворювання</th><th>Умови</th><th>Ліміт</th></tr>
+        <tr><td>🩺 Цукровий діабет</td><td>Вперше виявлений, перший курс стаціонарного лікування (до 30 днів)</td><td>20 000 грн</td></tr>
+        <tr><td>🫁 Туберкульоз</td><td>Вперше виявлений, спеціалізовані держ./відомчі заклади, перший курс до 30 днів</td><td>20 000 грн</td></tr>
+        <tr><td>🎗️ Онкологія</td><td>Вперше виявлена: консультації, діагностика, 1 курс стаціонарного лікування, операція, 1 курс хіміо/радіотерапії (до 30 днів)</td><td>30 000 грн</td></tr>
+      </table>
+      <div class="info">Корпоративні ліміти — загальні на всіх застрахованих.</div>
+    </div>
+  </div>
+
+  <div class="step" data-keywords="відновне лікування фізіотерапія лікувальна фізкультура ЛФК консультація провідні фахівці консиліум телефонний">
+    <div class="step-header" onclick="toggle(this)">
+      <div class="step-num n6">6</div>
+      <span class="step-icon">💆</span>
+      <span class="step-title">Додаткові послуги</span>
+      <span class="step-toggle">▼</span>
+    </div>
+    <div class="step-body">
+      <ul>
+        <li><strong>Відновне лікування (за МОЗ протоколами):</strong> фізіотерапія (електро-, світло-, тепло-, водолікування, ультразвук, інгаляції) — до 10 процедур; ЛФК — до 10 процедур</li>
+        <li><strong>Консультації провідних фахівців:</strong> консиліуми при важко диференційних діагнозах, у т.ч. на базі провідних лікарень Києва</li>
+        <li><strong>Консультація лікаря на місці та телефонний режим</strong></li>
+        <li><strong>Довірений лікар Асистансу</strong> — терапевт для супроводу та моніторингу</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<!-- EXCLUSIONS PAGE -->
+<div class="page" id="page-exclusions">
+  <div class="hero" style="background: linear-gradient(135deg, #b91c1c, #dc2626);">
+    <h1>🚫 Що НЕ покривається</h1>
+    <p>Додаток №2 до договору 03/04-1К-000169159 від 02.10.2025 р.</p>
+  </div>
+
+  <div class="danger">Уважно! Ці випадки страхова компанія НЕ оплачує та НЕ відшкодовує.</div>
+
+  <div class="section-title">Не визнаються страховим випадком</div>
+
+  <div class="step" data-keywords="не страховий випадок виключення поза строком поза територією договір">
+    <div class="step-header" onclick="toggle(this)">
+      <div class="step-num n1">1</div>
+      <span class="step-icon">📅</span>
+      <span class="step-title">Допомога поза строком або територією договору</span>
+      <span class="step-toggle">▼</span>
+    </div>
+    <div class="step-body">
+      <p>Якщо медична допомога отримана поза строком та територією дії Договору.</p>
+      <div class="ok">Виняток: стаціонарний випадок настав у строк договору — можна лікуватися ще до 7 календарних днів після закінчення.</div>
+    </div>
+  </div>
+
+  <div class="step" data-keywords="не передбачено програмою страхування виключення">
+    <div class="step-header" onclick="toggle(this)">
+      <div class="step-num n2">2</div>
+      <span class="step-icon">📋</span>
+      <span class="step-title">Допомога, не передбачена Програмою страхування</span>
+      <span class="step-toggle">▼</span>
+    </div>
+    <div class="step-body">
+      <p>Якщо вид допомоги або послуга не вказані в програмі страхування — страхова не покриє.</p>
+    </div>
+  </div>
+
+  <div class="step" data-keywords="небазовий заклад без погодження клініка партнер">
+    <div class="step-header" onclick="toggle(this)">
+      <div class="step-num n3">3</div>
+      <span class="step-icon">🏥</span>
+      <span class="step-title">Лікування в небазовому закладі без погодження</span>
+      <span class="step-toggle">▼</span>
+    </div>
+    <div class="step-body">
+      <p>Якщо лікування відбулось у клініці, що не є базовою, і не було погоджено зі страховиком — витрати не відшкодовуються.</p>
+      <div class="warn">Завжди спочатку дзвоніть на гарячу лінію 0 800 218 800!</div>
+    </div>
+  </div>
+
+  <div class="step" data-keywords="самогубство навмисне суїцид самолікування правопорушення">
+    <div class="step-header" onclick="toggle(this)">
+      <div class="step-num n4">4</div>
+      <span class="step-icon">⚠️</span>
+      <span class="step-title">Навмисні дії, самолікування, правопорушення</span>
+      <span class="step-toggle">▼</span>
+    </div>
+    <div class="step-body">
+      <ul>
+        <li>Спроба самогубства або навмисне нанесення тілесних ушкоджень</li>
+        <li>Самолікування (цілительство, нетрадиційні методи)</li>
+        <li>Правопорушення (доведене судом)</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="step" data-keywords="ядерна енергія катастрофа техногенна військові дії війна теракт страйк форс-мажор стихійне лихо">
+    <div class="step-header" onclick="toggle(this)">
+      <div class="step-num n5">5</div>
+      <span class="step-icon">☢️</span>
+      <span class="step-title">Техногенні катастрофи, військові дії, форс-мажор</span>
+      <span class="step-toggle">▼</span>
+    </div>
+    <div class="step-body">
+      <ul>
+        <li>Ядерна енергія в будь-якій формі, техногенні катастрофи</li>
+        <li>Військові дії, маневри та інші військові заходи</li>
+        <li>Громадянська війна, народні хвилювання, страйки, революції, повстання, заколоти, терористичні акти</li>
+        <li>Стихійні лиха та інші форс-мажорні обставини</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="step" data-keywords="невиправданий ризик водіння права безпека підприємство нещасний випадок виробництво спорт альпінізм парашут дайвінг мотоспорт кінний">
+    <div class="step-header" onclick="toggle(this)">
+      <div class="step-num n6">6</div>
+      <span class="step-icon">🏔️</span>
+      <span class="step-title">Невиправданий ризик та небезпечні види спорту</span>
+      <span class="step-toggle">▼</span>
+    </div>
+    <div class="step-body">
+      <ul>
+        <li>Керування ТЗ без відповідних прав або порушення правил безпеки на виробництві</li>
+        <li>Небезпечні види спорту: <strong>альпінізм, спелеологія, дельтапланеризм, автоспорт, кінний спорт, парашутизм, дайвінг</strong></li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="step" data-keywords="стоматологія зуби щелепа офтальмологія очі зір">
+    <div class="step-header" onclick="toggle(this)">
+      <div class="step-num n7">7</div>
+      <span class="step-icon">🦷</span>
+      <span class="step-title">Стоматологія та офтальмологія (без програми)</span>
+      <span class="step-toggle">▼</span>
+    </div>
+    <div class="step-body">
+      <ul>
+        <li>Стоматологія — НЕ покривається, якщо не передбачено Програмою (в нашій програмі є ліміт 1750 грн)</li>
+        <li>Щелепно-лицьова хірургія — тільки при гострих гнійних процесах або нещасних випадках</li>
+        <li>Оперативна офтальмологія — тільки при нещасних випадках</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="section-title">Що НЕ відшкодовується</div>
+
+  <div class="step" data-keywords="не відшкодовується ліки медикаменти без рецепта БАД вітаміни гомеопатія хондропротектори ноотропи">
+    <div class="step-header" onclick="toggle(this)">
+      <div class="step-num n1">📦</div>
+      <span class="step-icon">💊</span>
+      <span class="step-title">Заборонені категорії ліків</span>
+      <span class="step-toggle">▼</span>
+    </div>
+    <div class="step-body">
+      <p>НЕ відшкодовуються:</p>
+      <ul>
+        <li>Ліки без рецепта або куплені поза аптечною мережею України</li>
+        <li>БАД, стимулятори загальної дії, пробіотики, бактеріофаги</li>
+        <li>Фітопрепарати, гомеопатичні, антигомотоксичні препарати</li>
+        <li>Імуностимулятори, ноотропи, вітамінно-мінеральні комплекси, адаптогени</li>
+        <li>Загальнозміцнюючі засоби, хондропротектори (ліміт 600 грн є в програмі)</li>
+        <li>Протигрибкові препарати, плазмозамінники, колоїдні розчини (крім стандарту лікування)</li>
+        <li>Засоби догляду, косметологічні засоби, дезінфектори</li>
+        <li>Інгібітори ФНП, моноклональні антитіла</li>
+        <li>Ліпідознижуючі препарати (якщо не в програмі)</li>
+        <li>Гепатопротектори (ліміт 300 грн є в програмі)</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="step" data-keywords="не відшкодовується медичне обладнання прилади стент шунт протез ортез бандаж шприц">
+    <div class="step-header" onclick="toggle(this)">
+      <div class="step-num n2">🔧</div>
+      <span class="step-icon">🩺</span>
+      <span class="step-title">Медичне обладнання та витратні матеріали</span>
+      <span class="step-toggle">▼</span>
+    </div>
+    <div class="step-body">
+      <p>НЕ відшкодовуються діагностичні прилади, засоби медичного призначення:</p>
+      <ul>
+        <li>Шовний матеріал, катетери, дихальні фільтри (крім загрози життю)</li>
+        <li>Стенти, шунти, штучні зв'язки, комір Шанця, бандажи, еластичні бинти</li>
+        <li>Протези, ортези, фіксатори зубних протезів</li>
+        <li>Апарати для зшивання, ендоскопічні стійки</li>
+        <li>Петлі для поліпектомій, набори для коронарографії та ін.</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="step" data-keywords="не відшкодовується санаторій курорт профілактика реабілітація два препарати аналогічні">
+    <div class="step-header" onclick="toggle(this)">
+      <div class="step-num n3">🏖️</div>
+      <span class="step-icon">🏖️</span>
+      <span class="step-title">Санаторії, профілактика, повторні обстеження</span>
+      <span class="step-toggle">▼</span>
+    </div>
+    <div class="step-body">
+      <ul>
+        <li>Санаторно-курортне лікування (якщо не в програмі)</li>
+        <li>Повторні медичні обстеження без медичних показань</li>
+        <li>Профілактичне та реабілітаційне лікування</li>
+        <li>Лікування наслідків раніше перенесених захворювань (мануальна терапія, масаж без призначення)</li>
+        <li>Два аналогічних препарати одночасно (за хімічним складом або механізмом дії)</li>
+        <li>Препарати, призначені виключно з метою профілактики</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<!-- ACTIONS PAGE -->
+<div class="page" id="page-actions">
+  <div class="hero" style="background: linear-gradient(135deg, #b45309, #d97706);">
+    <h1>🚨 Дії при страховому випадку</h1>
+    <p>Пам'ятка застрахованої особи · Додаток №4 до договору</p>
+  </div>
+
+  <div class="danger">⚠️ Не зафіксований на гарячій лінії страховий випадок, неузгоджені медикаменти та візити в медичні заклади НЕ відшкодовуються!</div>
+
+  <div class="section-title">Крок за кроком</div>
+
+  <div class="step" data-keywords="гаряча лінія телефон 0800 дзвонити страховий випадок звернення">
+    <div class="step-header" onclick="toggle(this)">
+      <div class="step-num n1">1</div>
+      <span class="step-icon">📞</span>
+      <span class="step-title">Зателефонувати на гарячу лінію</span>
+      <span class="step-toggle">▼</span>
+    </div>
+    <div class="step-body">
+      <p>Протягом <strong>доби</strong> після настання страхового випадку зателефонуйте:</p>
+      <div class="hotline">☎️ 0 800 218 800</div>
+      <p>Цілодобово, безкоштовно</p>
+      <p><strong>Повідомте лікарю-координатору:</strong></p>
+      <ul>
+        <li>Прізвище, ім'я, по-батькові</li>
+        <li>Номер договору страхування</li>
+        <li>Причину звернення (скарги, проблеми зі здоров'ям)</li>
+        <li>Фактичну адресу місцезнаходження</li>
+        <li>Контактні телефони</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="step" data-keywords="лікар-координатор запис прийом лікарня організація направлення">
+    <div class="step-header" onclick="toggle(this)">
+      <div class="step-num n2">2</div>
+      <span class="step-icon">🩺</span>
+      <span class="step-title">Лікар-координатор організовує допомогу</span>
+      <span class="step-toggle">▼</span>
+    </div>
+    <div class="step-body">
+      <p>Лікар-координатор страховика:</p>
+      <ul>
+        <li>Записує на прийом до відповідного лікаря-фахівця</li>
+        <li>При необхідності — викликає бригаду невідкладної допомоги</li>
+        <li>Організовує госпіталізацію в базовий профільний медичний заклад</li>
+        <li>Надає необхідну інформаційну підтримку</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="step" data-keywords="якщо самостійно купили ліки документи відшкодування чеки фіскальний IBAN">
+    <div class="step-header" onclick="toggle(this)">
+      <div class="step-num n3">3</div>
+      <span class="step-icon">🧾</span>
+      <span class="step-title">Якщо купили ліки самостійно — подайте документи</span>
+      <span class="step-toggle">▼</span>
+    </div>
+    <div class="step-body">
+      <div class="warn">Тільки якщо страхова погодила самостійну купівлю! Без узгодження — не відшкодують.</div>
+      <p><strong>Документи для відшкодування:</strong></p>
+      <ul>
+        <li>Ксерокопія паспорта (стор. 1, 2, 3 + реєстрація)</li>
+        <li>Індивідуальний податковий номер (ідентифікаційний код)</li>
+        <li>Виписка зі стаціонару або амбулаторної картки</li>
+        <li>Оригінали фіскальних чеків</li>
+        <li>IBAN рахунок власної банківської картки</li>
+      </ul>
+      <p><strong>Як подати:</strong></p>
+      <ul>
+        <li>🌐 Online: <a href="https://kniazha.ua/zdorovia-strakhovyi-vypadok" target="_blank">kniazha.ua → «ВРЕГУЛЮВАННЯ ONLINE» → «Медичне страхування»</a><br>
+          Пройти 4 етапи: ідентифікація → заявка → документи → підписання SMS-паролем</li>
+        <li>📧 Email: <a href="mailto:10363@kniazha.ua">10363@kniazha.ua</a> (Дніпропетровська обласна дирекція)</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<!-- MEDS PAGE -->
+<div class="page" id="page-meds">
+  <div class="hero" style="background: linear-gradient(135deg, #0f766e, #059669);">
+    <h1>💊 Ліки та відшкодування</h1>
+    <p>Правила отримання медикаментів за страховкою</p>
+  </div>
+
+  <div class="danger">⚠️ Куплені самостійно без узгодження з гарячою лінією ліки НЕ відшкодовуються!</div>
+
+  <div class="step" data-keywords="аптека партнер безкоштовно ліки медикаменти отримати видача">
+    <div class="step-header" onclick="toggle(this)">
+      <div class="step-num n1">1</div>
+      <span class="step-icon">🏪</span>
+      <span class="step-title">Отримати ліки в аптеці-партнері (основний спосіб)</span>
+      <span class="step-toggle">▼</span>
+    </div>
+    <div class="step-body">
+      <ol style="padding-left: 16px; font-size: 13px; color: #444; line-height: 1.8;">
+        <li>Зателефонувати на <strong>0 800 218 800</strong></li>
+        <li>Лікар-координатор погоджує необхідні препарати</li>
+        <li>Отримати ліки безкоштовно в аптеці-партнері</li>
+      </ol>
+      <div class="ok">Доставка додому або в офіс — цілодобово в межах міста!</div>
+    </div>
+  </div>
+
+  <div class="step" data-keywords="скільки днів ліки амбулаторно стаціонар 3 5 7 днів лікарняний">
+    <div class="step-header" onclick="toggle(this)">
+      <div class="step-num n2">2</div>
+      <span class="step-icon">📅</span>
+      <span class="step-title">На скільки днів видають ліки</span>
+      <span class="step-toggle">▼</span>
+    </div>
+    <div class="step-body">
+      <table>
+        <tr><th>Умови</th><th>Строк</th></tr>
+        <tr><td>Амбулаторно (поліклініка)</td><td>3–5 днів на основне захворювання</td></tr>
+        <tr><td>Стаціонар (лікарня)</td><td>7 днів на основне захворювання</td></tr>
+      </table>
+      <div class="info">Видаються тільки за наявності лікарняного листа або довідки. Спочатку — препарати для купування гострого стану.</div>
+    </div>
+  </div>
+
+  <div class="step" data-keywords="самостійно купити будь-яка аптека чек фіскальний узгодження">
+    <div class="step-header" onclick="toggle(this)">
+      <div class="step-num n3">3</div>
+      <span class="step-icon">🛒</span>
+      <span class="step-title">Самостійна купівля в будь-якій аптеці</span>
+      <span class="step-toggle">▼</span>
+    </div>
+    <div class="step-body">
+      <p>Можна купити ліки самостійно в будь-якій аптеці <strong>тільки після</strong>:</p>
+      <ul>
+        <li>Узгодження з оператором гарячої лінії <strong>до купівлі</strong></li>
+        <li>Аптека повинна видати <strong>розширений фіскальний чек</strong></li>
+      </ul>
+      <div class="warn">Без попереднього узгодження з гарячою лінією — ліки не відшкодовуються!</div>
+    </div>
+  </div>
+
+  <div class="step" data-keywords="аналізи лабораторія франшиза лікарняний довідка амбулаторна картка">
+    <div class="step-header" onclick="toggle(this)">
+      <div class="step-num n4">4</div>
+      <span class="step-icon">🧪</span>
+      <span class="step-title">Аналізи та лабораторія</span>
+      <span class="step-toggle">▼</span>
+    </div>
+    <div class="step-body">
+      <p>Аналізи оплачуються тільки при:</p>
+      <ul>
+        <li>Наявності лікарняного листа або довідки</li>
+        <li>Запису/обґрунтуванні в амбулаторній карті або в історії хвороби</li>
+        <li>З урахуванням франшизи згідно з переліком ЛПУ (Додаток №2)</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<!-- EPE PAGE -->
+<div class="page" id="page-epe">
+  <div class="hero" style="background: linear-gradient(135deg, #1e40af, #2563eb);">
+    <h1>💻 Внесення квитанції EPE</h1>
+    <p>Інструкція по внесенню квитанції страхового платежу в систему EPE</p>
+  </div>
+
+  <div class="step" data-keywords="EPE ISD MY DATA SERVICES INSURANCE INFORMATION внесення квитанція">
+    <div class="step-header" onclick="toggle(this)">
+      <div class="step-num n1">1</div>
+      <span class="step-icon">🔑</span>
+      <span class="step-title">Зайти в EPE та знайти розділ страхування</span>
+      <span class="step-toggle">▼</span>
+    </div>
+    <div class="step-body">
+      <ol style="padding-left: 16px; font-size: 13px; color: #444; line-height: 2;">
+        <li>Зайти в <strong>EPE</strong></li>
+        <li>Знайти вкладку <strong>«ISD»</strong></li>
+        <li>Розділ <strong>«MY DATA»</strong></li>
+        <li>Перейти у вкладку <strong>«ISD SERVICES»</strong></li>
+        <li>Знайти розділ <strong>«INSURANCE INFORMATION»</strong></li>
+      </ol>
+      <div class="info">Company: «SK Kniazha» · Policy # — це індивідуальний номер договору (використовується для оплати в Приват24)</div>
+    </div>
+  </div>
+
+  <div class="step" data-keywords="PAYMENT квитанція оплата Check Number Payment Price Period Year заповнити">
+    <div class="step-header" onclick="toggle(this)">
+      <div class="step-num n2">2</div>
+      <span class="step-icon">💳</span>
+      <span class="step-title">Натиснути PAYMENT та заповнити поля</span>
+      <span class="step-toggle">▼</span>
+    </div>
+    <div class="step-body">
+      <p>Натисніть кнопку <strong>«PAYMENT»</strong>. Обов'язково заповніть поля (виділені жовтим):</p>
+      <table>
+        <tr><th>Поле</th><th>Що вводити</th></tr>
+        <tr><td><strong>Check Number</strong></td><td>Номер квитанції. Якщо немає коду — ввести точний час оплати + дата або номер транзакції в Приват24</td></tr>
+        <tr><td><strong>Payment Price</strong></td><td>Сума оплати</td></tr>
+        <tr><td><strong>Period</strong></td><td>Номер платіжного періоду (дивись нижче)</td></tr>
+        <tr><td><strong>Year</strong></td><td>Рік оплати</td></tr>
+      </table>
+    </div>
+  </div>
+
+  <div class="step" data-keywords="period період оплати місяці квартал жовтень листопад грудень січень лютий березень">
+    <div class="step-header" onclick="toggle(this)">
+      <div class="step-num n3">3</div>
+      <span class="step-icon">📅</span>
+      <span class="step-title">Який Period вказати?</span>
+      <span class="step-toggle">▼</span>
+    </div>
+    <div class="step-body">
+      <table>
+        <tr><th>Period</th><th>Місяці</th></tr>
+        <tr><td><strong>1</strong></td><td>Жовтень, листопад, грудень</td></tr>
+        <tr><td><strong>2</strong></td><td>Січень, лютий, березень</td></tr>
+        <tr><td><strong>3</strong></td><td>Квітень, червень, липень</td></tr>
+        <tr><td><strong>4</strong></td><td>Серпень, вересень, жовтень</td></tr>
+      </table>
+      <div class="info">Дивіться тему листа — там завжди вказаний платіжний період.</div>
+    </div>
+  </div>
+
+  <div class="step" data-keywords="родичі сімейне страхування члени сім'ї застрахувати">
+    <div class="step-header" onclick="toggle(this)">
+      <div class="step-num n4">4</div>
+      <span class="step-icon">👨‍👩‍👧</span>
+      <span class="step-title">Страхування родичів</span>
+      <span class="step-toggle">▼</span>
+    </div>
+    <div class="step-body">
+      <p>Якщо плануєте застрахувати родича — заповніть додаткові поля, виділені жовтим кольором (з'являться після вибору відповідної опції).</p>
+    </div>
+  </div>
+
+  <div class="step" data-keywords="SAVE зберегти кнопка">
+    <div class="step-header" onclick="toggle(this)">
+      <div class="step-num n5">5</div>
+      <span class="step-icon">✅</span>
+      <span class="step-title">Натиснути SAVE</span>
+      <span class="step-toggle">▼</span>
+    </div>
+    <div class="step-body">
+      <p>Після заповнення всіх полів натисніть кнопку <strong>«SAVE»</strong> — квитанція збережена!</p>
+    </div>
+  </div>
+</div>
+
+</div><!-- /main -->
+
+<script>
+// ---- NAV ----
+function showPage(id) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.sidebar a').forEach(a => a.classList.remove('active'));
+  document.getElementById('page-' + id).classList.add('active');
+  document.getElementById('nav-' + id).classList.add('active');
+}
+
+// ---- COLLAPSE ----
+function toggle(header) {
+  const body = header.nextElementSibling;
+  const chev = header.querySelector('.step-toggle');
+  const isOpen = body.classList.contains('open');
+  body.classList.toggle('open', !isOpen);
+  chev.classList.toggle('open', !isOpen);
+}
+
+// ---- SEARCH ----
+// Build index from all steps
+const INDEX = [];
+document.querySelectorAll('.step').forEach(step => {
+  const header = step.querySelector('.step-title');
+  const body = step.querySelector('.step-body');
+  const keywords = step.dataset.keywords || '';
+  const text = (header ? header.textContent : '') + ' ' + (body ? body.textContent : '') + ' ' + keywords;
+  const pageEl = step.closest('.page');
+  const pageId = pageEl ? pageEl.id.replace('page-', '') : '';
+  const pageNames = {
+    'program': 'Програма страхування',
+    'exclusions': 'Що НЕ покривається',
+    'actions': 'Дії при страховому випадку',
+    'meds': 'Ліки та відшкодування',
+    'epe': 'Внесення квитанції EPE',
+  };
+  INDEX.push({
+    title: header ? header.textContent : '',
+    text: body ? body.textContent.trim().substring(0, 200) : '',
+    fullText: text.toLowerCase(),
+    pageId: pageId,
+    pageName: pageNames[pageId] || pageId,
+    step: step,
+  });
+});
+
+function doSearch(query) {
+  const container = document.getElementById('searchResults');
+  if (!query.trim()) {
+    container.innerHTML = '<p style="color:#888; font-size:14px;">Почніть вводити питання — результати з\'являться тут</p>';
+    return;
+  }
+  const words = query.toLowerCase().trim().split(/\s+/).filter(w => w.length > 1);
+  const results = INDEX.map(item => {
+    const score = words.reduce((s, w) => s + (item.fullText.includes(w) ? 1 : 0), 0);
+    return { ...item, score };
+  }).filter(r => r.score > 0).sort((a, b) => b.score - a.score).slice(0, 6);
+
+  if (!results.length) {
+    container.innerHTML = '<p class="no-results">Нічого не знайдено. Спробуйте інші слова.</p>';
+    return;
+  }
+
+  const html = results.map(r => {
+    const highlighted = r.text.replace(new RegExp('(' + words.join('|') + ')', 'gi'), '<mark>$1</mark>');
+    return '<div class="search-hit" onclick="goToResult(\'' + r.pageId + '\', this)" data-step-title="' + r.title.replace(/"/g,'') + '">' +
+      '<div class="section-tag">📂 ' + r.pageName + '</div>' +
+      '<h4>' + r.title + '</h4>' +
+      '<p>' + highlighted + '…</p>' +
+      '</div>';
+  }).join('');
+  container.innerHTML = html;
+}
+
+function goToResult(pageId, hitEl) {
+  showPage(pageId);
+  const title = hitEl.dataset.stepTitle;
+  // Find matching step
+  setTimeout(() => {
+    const steps = document.querySelectorAll('#page-' + pageId + ' .step-title');
+    for (const s of steps) {
+      if (s.textContent.trim() === title) {
+        const body = s.closest('.step-header').nextElementSibling;
+        const chev = s.closest('.step-header').querySelector('.step-toggle');
+        body.classList.add('open');
+        chev.classList.add('open');
+        s.closest('.step').scrollIntoView({ behavior: 'smooth', block: 'center' });
+        break;
+      }
+    }
+  }, 50);
+}
+
+// Init
+showPage('search');
+</script>
+</body>
+</html>
